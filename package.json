@@ -1,0 +1,51 @@
+{
+  "name": "easylearn-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plateforme d'apprentissage adaptatif par IA (EasyLearn - Education Smart)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.45.4",
+    "@tailwindcss/typography": "^0.5.20",
+    "@types/canvas-confetti": "^1.9.0",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
+    "autoprefixer": "^10.5.4",
+    "canvas-confetti": "^1.9.4",
+    "lucide-react": "^1.27.0",
+    "next": "^14.2.15",
+    "next-themes": "^0.4.6",
+    "postcss": "^8.5.23",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "resend": "^6.18.1",
+    "stripe": "^22.4.0",
+    "tailwindcss": "^4.3.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^20.14.9",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitest/coverage-v8": "^3.2.7",
+    "typescript": "^5.5.3",
+    "vitest": "^3.2.7"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

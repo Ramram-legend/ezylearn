@@ -1,0 +1,48 @@
+
+> easylearn-frontend@1.0.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 22.6s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1163ms (126 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 35.6s (760 modules)
+ GET / 200 in 37135ms
+ GET / 200 in 219ms
+ ○ Compiling /api/auth/login ...
+ ✓ Compiled /api/auth/login in 2.6s (481 modules)
+[api/auth/login] emailRedirectTo: https://easylearn-ochre.vercel.app/auth/callback
+ POST /api/auth/login 200 in 7272ms
+ GET / 200 in 4064ms
+ GET / 200 in 778ms
+ GET / 200 in 713ms
+ GET / 200 in 336ms
+ GET / 200 in 842ms
+ GET / 200 in 218ms
+ GET / 200 in 163ms
+ GET / 200 in 215ms
+ GET / 200 in 212ms
+ ✓ Compiled in 4.9s (379 modules)
+ ✓ Compiled in 1366ms (379 modules)
+ ✓ Compiled in 1459ms (379 modules)
+ ✓ Compiled in 1235ms (379 modules)
+ ✓ Compiled in 3.9s (872 modules)
+ ✓ Compiled in 937ms (379 modules)
+ ✓ Compiled in 603ms (379 modules)
+ ✓ Compiled in 1274ms (379 modules)
+ ✓ Compiled in 1781ms (379 modules)
+ ✓ Compiled in 1073ms (379 modules)
+ ✓ Compiled in 678ms (379 modules)
+ ✓ Compiled in 1897ms (379 modules)
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 36.1s

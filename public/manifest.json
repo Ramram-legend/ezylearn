@@ -1,0 +1,43 @@
+{
+  "name": "EasyLearn",
+  "short_name": "EasyLearn",
+  "description": "Plateforme d'apprentissage adaptatif par IA — leçons personnalisées, quiz interactifs, gamification.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Générer une leçon",
+      "short_name": "Nouvelle leçon",
+      "description": "Générer une nouvelle leçon personnalisée",
+      "url": "/lessons/generate",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mon tableau de bord",
+      "short_name": "Dashboard",
+      "description": "Voir mes statistiques et progrès",
+      "url": "/dashboard",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    }
+  ]
+}
