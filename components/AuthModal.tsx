@@ -69,9 +69,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleGoogleLogin = async () => {
     setState('loading_google');
-    setErrorMsg('');
-
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    // Toujours utiliser l'origine courante du navigateur pour éviter les redirections vers un ancien domaine
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL ?? '');
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
