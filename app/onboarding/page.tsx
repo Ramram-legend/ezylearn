@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, ArrowRight, ArrowLeft, Check, User, Award } from 'lucide-react';
 import { CATALOG_INTERESTS, saveDemoProfile, saveDemoStats, getDemoStats } from '@/lib/demo-engine';
+import { PlatformIcon } from '@/components/PlatformIcon';
 import { useAuth } from '@/hooks/useAuth';
 import confetti from 'canvas-confetti';
 
@@ -18,9 +19,9 @@ export default function OnboardingPage() {
 
   // Compute current Age Group
   const getAgeGroupLabel = (a: number) => {
-    if (a <= 11) return { label: 'Enfant (5-11 ans)', badge: '👶 Enfant', color: 'from-emerald-500 to-teal-500' };
-    if (a <= 17) return { label: 'Collège / Lycée (12-17 ans)', badge: '🎒 Adolescent', color: 'from-indigo-500 to-purple-500' };
-    return { label: 'Étudiant / Adulte (18-25 ans)', badge: '🎓 Étudiant / Adulte', color: 'from-purple-500 to-pink-500' };
+    if (a <= 11) return { label: 'Enfant (5-11 ans)', badge: 'Enfant', icon: 'child', color: 'from-emerald-500 to-teal-500' };
+    if (a <= 17) return { label: 'Collège / Lycée (12-17 ans)', badge: 'Adolescent', icon: 'teen', color: 'from-indigo-500 to-purple-500' };
+    return { label: 'Étudiant / Adulte (18-25 ans)', badge: 'Étudiant / Adulte', icon: 'adult', color: 'from-purple-500 to-pink-500' };
   };
 
   const ageInfo = getAgeGroupLabel(age);
@@ -118,7 +119,7 @@ export default function OnboardingPage() {
               Bienvenue sur <span className="text-gradient">EasyLearn</span> !
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Dites-nous en plus sur vous pour que l'IA adapte ses leçons et schémas.
+              Dites-nous en plus sur vous pour que l&apos;IA adapte ses leçons et schémas.
             </p>
           </div>
 
@@ -168,6 +169,7 @@ export default function OnboardingPage() {
                 </div>
                 <div>
                   <span className="inline-block rounded-md bg-indigo-500/20 text-indigo-300 text-xs font-bold px-2 py-0.5 mb-1 border border-indigo-500/30">
+                    <PlatformIcon name={ageInfo.icon} className="mr-1 inline h-3.5 w-3.5" />
                     {ageInfo.badge}
                   </span>
                   <p className="text-xs text-muted-foreground">
@@ -193,7 +195,7 @@ export default function OnboardingPage() {
         <div className="glass-card rounded-3xl p-8 border border-border shadow-2xl">
           <div className="text-center mb-6">
             <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-foreground">
-              Tes Centres d'Intérêt
+              Tes Centres d&apos;Intérêt
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Sélectionne entre 2 et 8 passions pour personnaliser tes illustrations et exemples.
@@ -218,7 +220,9 @@ export default function OnboardingPage() {
                       : 'border-border bg-card/60 text-muted-foreground hover:border-border hover:text-muted-foreground'
                   }`}
                 >
-                  <span className="text-2xl">{item.icon}</span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10">
+                    <PlatformIcon name={item.icon} />
+                  </span>
                   <div className="flex-1 min-w-0">
                     <span className="block text-xs sm:text-sm font-semibold truncate">{item.label}</span>
                   </div>

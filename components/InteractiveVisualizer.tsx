@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import type { InteractiveVisualization } from '@/types/database';
-import { Maximize2, Minimize2, Loader2, RefreshCw } from 'lucide-react';
+import { Maximize2, Minimize2, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
 
 interface Props {
   visualization: InteractiveVisualization;
@@ -185,7 +185,9 @@ export default function InteractiveVisualizer({ visualization }: Props) {
         {error && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/90 text-red-400 p-6 text-center">
             <div className="bg-red-500/10 p-4 rounded-xl border border-red-500/20 max-w-sm">
-              <p className="font-bold mb-2">⚠️ Échec de la simulation</p>
+              <p className="mb-2 flex items-center gap-2 font-bold">
+                <AlertTriangle className="h-4 w-4" /> Échec de la simulation
+              </p>
               <p className="text-sm text-red-300">{error}</p>
             </div>
           </div>

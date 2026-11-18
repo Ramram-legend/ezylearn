@@ -8,7 +8,7 @@ export default function DashboardLoading() {
       </div>
       <div className="space-y-2 text-center">
         <h2 className="text-xl font-bold text-foreground">Chargement de votre tableau de bord...</h2>
-        <p className="text-sm text-muted-foreground">Préparation de vos statistiques et leçons ✨</p>
+        <p className="text-sm text-muted-foreground">Préparation de vos statistiques et leçons.</p>
       </div>
       
       {/* Dashboard Grid Skeleton */}

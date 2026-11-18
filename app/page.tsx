@@ -7,6 +7,17 @@ import { Brain, Layers, Award, ArrowRight, Zap, Flame, Sparkles, BarChart3, Chec
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 
+const softwareApplicationSchema = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'EasyLearn',
+  url: 'https://www.ezylearn.world',
+  applicationCategory: 'EducationalApplication',
+  operatingSystem: 'Web',
+  inLanguage: 'fr',
+  description: 'Leçons interactives créées par l’IA, adaptées à votre âge, avec quiz personnalisés.',
+}).replace(/</g, '\\u003c');
+
 export default function Home() {
   const router = useRouter();
   const { user, loading, openLogin } = useAuth();
@@ -20,6 +31,11 @@ export default function Home() {
 
   return (
     <div className="flex-1 flex flex-col bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: softwareApplicationSchema }}
+      />
+
       {/* ── Hero Section ─────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28">
         <div className="max-w-3xl mx-auto text-center space-y-8">

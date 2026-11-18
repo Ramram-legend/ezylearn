@@ -2,14 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '@/app/api/quiz/submit/route';
 import { getAuthContext } from '@/lib/api-utils';
 import { FakeStore } from '@/test/utils/supabase-mock';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 vi.mock('@/lib/api-utils', async (importOriginal) => {
   const mod = await importOriginal<typeof import('@/lib/api-utils')>();
   return { ...mod, getAuthContext: vi.fn() };
 });
 
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(),
+}));
+
 const USER = 'user-1';
-const LESSON_ID = '11111111-1111-1111-1111-111111111111';
+const LESSON_ID = '11111111-1111-4111-8111-111111111111';
 
 function lessonRow(quiz: unknown) {
   return {
@@ -31,6 +36,7 @@ function jsonResponse(res: Response) {
 describe('POST /api/quiz/submit', () => {
   beforeEach(() => {
     vi.mocked(getAuthContext).mockReset();
+    vi.mocked(createAdminClient).mockReset();
   });
 
   it('retourne 401 sans session', async () => {
@@ -66,6 +72,7 @@ describe('POST /api/quiz/submit', () => {
     });
 
     vi.mocked(getAuthContext).mockResolvedValue({ supabase: store as never, userId: USER });
+    vi.mocked(createAdminClient).mockReturnValue(store as never);
 
     const res = await POST(new Request('http://localhost/api/quiz/submit', {
       method: 'POST',
@@ -100,6 +107,7 @@ describe('POST /api/quiz/submit', () => {
     });
 
     vi.mocked(getAuthContext).mockResolvedValue({ supabase: store as never, userId: USER });
+    vi.mocked(createAdminClient).mockReturnValue(store as never);
 
     const res = await POST(new Request('http://localhost/api/quiz/submit', {
       method: 'POST',
@@ -119,6 +127,21 @@ describe('POST /api/quiz/submit', () => {
       body: JSON.stringify({ lessonId: LESSON_ID, answers: [0] }),
     }));
     expect(res.status).toBe(404);
+  });
+
+  it('refuse les quiz importés en tant que progression modifiable', async () => {
+    const store = new FakeStore({
+      lessons: [{ ...lessonRow([{ question: 'Q', options: ['a', 'b'], correct_index: 0 }]), content: { demo_imported: true } }],
+    });
+    vi.mocked(getAuthContext).mockResolvedValue({ supabase: store as never, userId: USER });
+
+    const res = await POST(new Request('http://localhost/api/quiz/submit', {
+      method: 'POST',
+      body: JSON.stringify({ lessonId: LESSON_ID, answers: [0] }),
+    }));
+
+    expect(res.status).toBe(409);
+    expect(store.tables.quiz_attempts).toBeUndefined();
   });
 
   it('rejette un nombre de reponses different de la taille du quiz', async () => {

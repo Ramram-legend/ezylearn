@@ -151,7 +151,7 @@ export const translations = {
 
     // AI Assistant
     ai_assistant_title: "Assistant IA EasyBot",
-    ai_assistant_welcome: "Bonjour ! 👋 Je suis EasyBot, votre assistant IA. Comment puis-je vous aider ?",
+    ai_assistant_welcome: "Bonjour ! Je suis EasyBot, votre assistant IA. Comment puis-je vous aider ?",
     type_message_placeholder: "Posez votre question à l'IA...",
   },
 
@@ -307,7 +307,7 @@ export const translations = {
 
     // AI Assistant
     ai_assistant_title: "EasyBot AI Assistant",
-    ai_assistant_welcome: "Hello! 👋 I am EasyBot, your AI assistant. How can I help you today?",
+    ai_assistant_welcome: "Hello! I am EasyBot, your AI assistant. How can I help you today?",
     type_message_placeholder: "Ask your question to AI...",
   },
 
@@ -463,7 +463,7 @@ export const translations = {
 
     // AI Assistant
     ai_assistant_title: "المساعد الذكي EasyBot",
-    ai_assistant_welcome: "مرحباً! 👋 أنا EasyBot، مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟",
+    ai_assistant_welcome: "مرحباً! أنا EasyBot، مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟",
     type_message_placeholder: "اطرح سؤالك على الذكاء الاصطناعي...",
   }
 };

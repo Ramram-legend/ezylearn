@@ -70,10 +70,10 @@ describe('computeStreakUpdate', () => {
 
 describe('checkAndAwardBadges', () => {
   const badges: Badge[] = [
-    { id: 'b1', code: 'first_lesson', label: 'Premiere Lecon', icon: '📖', description: '', condition_type: 'lessons_count', condition_value: 1 },
-    { id: 'b2', code: 'streak_3', label: 'Serie 3', icon: '🔥', description: '', condition_type: 'streak', condition_value: 3 },
-    { id: 'b3', code: 'perfect_score', label: 'Parfait', icon: '🏆', description: '', condition_type: 'perfect_score', condition_value: 1 },
-    { id: 'b4', code: 'lessons_10', label: '10 Lecons', icon: '📚', description: '', condition_type: 'lessons_count', condition_value: 10 },
+    { id: 'b1', code: 'first_lesson', label: 'Premiere Lecon', icon: 'first_lesson', description: '', condition_type: 'lessons_count', condition_value: 1 },
+    { id: 'b2', code: 'streak_3', label: 'Serie 3', icon: 'streak_3', description: '', condition_type: 'streak', condition_value: 3 },
+    { id: 'b3', code: 'perfect_score', label: 'Parfait', icon: 'perfect_score', description: '', condition_type: 'perfect_score', condition_value: 1 },
+    { id: 'b4', code: 'lessons_10', label: '10 Lecons', icon: 'lessons_10', description: '', condition_type: 'lessons_count', condition_value: 10 },
   ];
 
   const baseStats: UserStats = {

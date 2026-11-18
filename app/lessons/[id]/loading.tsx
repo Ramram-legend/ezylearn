@@ -8,7 +8,7 @@ export default function LessonLoading() {
       </div>
       <div className="space-y-2 text-center">
         <h2 className="text-xl font-bold text-foreground">Chargement de votre leçon...</h2>
-        <p className="text-sm text-muted-foreground">Préparation des contenus magiques ✨</p>
+        <p className="text-sm text-muted-foreground">Préparation des contenus de votre leçon.</p>
       </div>
       
       {/* Skeletons to mimic content */}

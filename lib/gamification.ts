@@ -77,10 +77,12 @@ export async function checkAndAwardBadges(
 
   if (badgesError || !allBadges) return [];
 
-  const { data: earnedRows } = await supabase
+  const { data: earnedRows, error: earnedError } = await supabase
     .from('user_badges')
     .select('badge_id')
     .eq('user_id', userId);
+
+  if (earnedError) throw new Error('Failed to check earned badges.');
 
   const earnedIds = new Set((earnedRows ?? []).map((row: { badge_id: string }) => row.badge_id));
 
@@ -100,9 +102,10 @@ export async function checkAndAwardBadges(
   });
 
   if (newlyEarned.length > 0) {
-    await supabase.from('user_badges').insert(
+    const { error } = await supabase.from('user_badges').insert(
       newlyEarned.map((badge) => ({ user_id: userId, badge_id: badge.id }))
     );
+    if (error) throw new Error('Failed to award badges.');
   }
 
   return newlyEarned;

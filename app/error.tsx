@@ -28,7 +28,7 @@ export default function Error({
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-foreground">Une erreur est survenue</h2>
           <p className="text-muted-foreground text-sm">
-            Nous n'avons pas pu charger cette page. Notre équipe a été notifiée.
+            Nous n&apos;avons pas pu charger cette page. Notre équipe a été notifiée.
           </p>
         </div>
 

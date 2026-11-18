@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { cookies } from 'next/headers';
 import { getAuthContext, errorResponse, unauthorizedResponse } from '@/lib/api-utils';
 import { generateLessonContent } from '@/lib/ai';
 import { checkGenerationRights, consumeGenerationCredit } from '@/lib/credits';
 import type { PublicQuizQuestion } from '@/types/database';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 /** Limite de leçons gratuites par jour pour les invités (non connectés) */
 const GUEST_DAILY_LIMIT = 3;
@@ -15,10 +15,10 @@ const guestRateLimitMap = new Map<string, { count: number; date: string }>();
  * Vérifie et incrémente le compteur invité via IP et cookie.
  * Retourne { allowed: boolean, remaining: number }.
  */
-async function checkGuestRateLimit(request: Request): Promise<{ allowed: boolean; remaining: number }> {
-  const cookieStore = await cookies();
+async function checkGuestRateLimit(request: Request): Promise<{ allowed: boolean; remaining: number; cookieValue: string }> {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  const forwardedIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  const ip = request.headers.get('x-real-ip') || forwardedIp || 'unknown';
 
   let ipCount = 0;
   const ipData = guestRateLimitMap.get(ip);
@@ -28,9 +28,12 @@ async function checkGuestRateLimit(request: Request): Promise<{ allowed: boolean
     guestRateLimitMap.set(ip, { count: 0, date: today });
   }
 
-  const raw = cookieStore.get('guest_rl')?.value;
+  const raw = request.headers.get('cookie')
+    ?.split(';')
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith('guest_rl='))
+    ?.slice('guest_rl='.length);
   let cookieCount = 0;
-  let date = today;
 
   if (raw) {
     try {
@@ -38,7 +41,6 @@ async function checkGuestRateLimit(request: Request): Promise<{ allowed: boolean
       if (parsed.date === today) {
         cookieCount = parsed.count ?? 0;
       }
-      date = parsed.date === today ? today : today;
     } catch {
       // Cookie corrompu → réinitialiser
     }
@@ -52,16 +54,21 @@ async function checkGuestRateLimit(request: Request): Promise<{ allowed: boolean
     guestRateLimitMap.set(ip, { count: newCount, date: today });
   }
 
-  // Encode le nouveau compteur dans le cookie (httpOnly, 1 jour)
-  const encoded = Buffer.from(JSON.stringify({ date, count: newCount })).toString('base64');
-  cookieStore.set('guest_rl', encoded, {
-    httpOnly: true,
-    sameSite: 'strict',
-    maxAge: 86400, // 24h
-    path: '/',
-  });
+  const cookieValue = Buffer.from(JSON.stringify({ date: today, count: newCount })).toString('base64');
+  return { allowed, remaining: Math.max(0, GUEST_DAILY_LIMIT - newCount), cookieValue };
+}
 
-  return { allowed, remaining: Math.max(0, GUEST_DAILY_LIMIT - newCount) };
+function withGuestRateLimitCookie(response: NextResponse, cookieValue?: string) {
+  if (cookieValue) {
+    response.cookies.set('guest_rl', cookieValue, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 86400,
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+    });
+  }
+  return response;
 }
 
 export const maxDuration = 60; // Allow up to 60 seconds for DeepSeek API generation
@@ -86,6 +93,7 @@ const generateSchema = z.object({
  */
 export async function POST(request: Request) {
   const auth = await getAuthContext();
+  let guestCookieValue: string | undefined;
 
   let body: unknown;
   try {
@@ -133,14 +141,15 @@ export async function POST(request: Request) {
   } else {
     // 2b. Mode invité : vérification du rate-limit (3 leçons/jour)
     const guestLimit = await checkGuestRateLimit(request);
+    guestCookieValue = guestLimit.cookieValue;
     if (!guestLimit.allowed) {
-      return NextResponse.json(
+      return withGuestRateLimitCookie(NextResponse.json(
         {
           error: `Limite atteinte : les visiteurs non connectés peuvent générer ${GUEST_DAILY_LIMIT} leçons par jour. Créez un compte gratuit pour continuer à apprendre sans limite !`,
           requiresAuth: true,
         },
         { status: 429 }
-      );
+      ), guestCookieValue);
     }
   }
 
@@ -158,17 +167,18 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     console.error('[GENERATE_ERROR]:', err);
-    return errorResponse(
+    return withGuestRateLimitCookie(errorResponse(
       `La generation de la lecon a echoue : ${err instanceof Error ? err.message : 'erreur inconnue'}`,
       502
-    );
+    ), guestCookieValue);
   }
 
   // 4. Sauvegarde en base et consommation de credit si authentifie
   let lessonData;
   
   if (auth) {
-    const { data: lesson, error: insertError } = await auth.supabase
+    const admin = createAdminClient();
+    const { data: lesson, error: insertError } = await admin
       .from('lessons')
       .insert({
         user_id: auth.userId,
@@ -211,7 +221,7 @@ export async function POST(request: Request) {
     ({ question, options }: { question: string; options: string[] }) => ({ question, options })
   );
 
-  return NextResponse.json({
+  return withGuestRateLimitCookie(NextResponse.json({
     lesson: {
       id: lessonData.id,
       topic: lessonData.topic,
@@ -221,5 +231,5 @@ export async function POST(request: Request) {
       quiz: publicQuiz,
       created_at: lessonData.created_at,
     },
-  });
+  }), guestCookieValue);
 }

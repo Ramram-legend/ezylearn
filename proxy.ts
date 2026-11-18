@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server';
  * routes API recoivent toujours un access token valide. Necessaire car les
  * Route Handlers ne peuvent pas ecrire de cookies "en dehors" d'une reponse.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -31,6 +31,22 @@ export async function middleware(request: NextRequest) {
   // Important : ne pas retirer cet appel. Il declenche le rafraichissement
   // du token si necessaire et synchronise les cookies de reponse.
   await supabase.auth.getUser();
+
+  const noIndexPrefixes = [
+    '/api',
+    '/auth',
+    '/dashboard',
+    '/history',
+    '/profile',
+    '/progress',
+    '/badges',
+    '/onboarding',
+    '/lessons',
+  ];
+  const pathname = request.nextUrl.pathname;
+  if (noIndexPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  }
 
   return response;
 }

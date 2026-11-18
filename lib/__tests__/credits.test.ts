@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   MAX_ADS_PER_DAY,
   CREDITS_PER_AD,
@@ -10,8 +10,21 @@ import {
   completeAdWatchSession,
 } from '@/lib/credits';
 import { FakeStore } from '@/test/utils/supabase-mock';
+import { createAdminClient } from '@/lib/supabase/admin';
+
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(),
+}));
 
 const USER = 'user-1';
+
+function useAdminStore(store: FakeStore) {
+  vi.mocked(createAdminClient).mockReturnValue(store as never);
+}
+
+beforeEach(() => {
+  vi.mocked(createAdminClient).mockReset();
+});
 
 function userCreditsRow(balance = 0) {
   return { user_id: USER, balance };
@@ -83,6 +96,7 @@ describe('consumeGenerationCredit', () => {
       user_daily_usage: [{ user_id: USER, usage_date: new Date().toISOString().split('T')[0], lessons_generated: 2 }],
       user_credits: [userCreditsRow(0)],
     });
+    useAdminStore(store);
     await consumeGenerationCredit(store as never, USER);
     expect(store.tables.user_daily_usage[0].lessons_generated).toBe(3);
   });
@@ -93,6 +107,7 @@ describe('consumeGenerationCredit', () => {
       user_daily_usage: [{ user_id: USER, usage_date: new Date().toISOString().split('T')[0], lessons_generated: 10 }],
       user_credits: [userCreditsRow(3)],
     });
+    useAdminStore(store);
     await consumeGenerationCredit(store as never, USER);
     expect(store.tables.user_credits[0].balance).toBe(2);
   });
@@ -128,6 +143,7 @@ describe('createAdTicket', () => {
 
   it('cree un ticket pending', async () => {
     const store = new FakeStore({ profiles: [profileRow()], ad_credit_grants: [] });
+    useAdminStore(store);
     const ticketId = await createAdTicket(store as never, USER);
     expect(ticketId).toBeDefined();
     expect(store.tables.ad_credit_grants[0]).toMatchObject({ user_id: USER, status: 'pending' });
@@ -140,6 +156,7 @@ describe('claimAdTicket', () => {
       profiles: [profileRow()],
       ad_credit_grants: [{ id: 't1', user_id: USER, status: 'claimed', created_at: new Date().toISOString() }],
     });
+    useAdminStore(store);
     await expect(claimAdTicket(store as never, USER, 't1')).rejects.toThrow(/invalide/);
   });
 
@@ -150,6 +167,7 @@ describe('claimAdTicket', () => {
         { id: 't1', user_id: USER, status: 'pending', created_at: new Date(Date.now() - 3600_000).toISOString(), expires_at: new Date(Date.now() - 1800_000).toISOString() },
       ],
     });
+    useAdminStore(store);
     await expect(claimAdTicket(store as never, USER, 't1')).rejects.toThrow(/expir/);
     expect(store.tables.ad_credit_grants[0].status).toBe('expired');
   });
@@ -162,6 +180,7 @@ describe('claimAdTicket', () => {
       ],
       user_credits: [userCreditsRow(0)],
     });
+    useAdminStore(store);
     await claimAdTicket(store as never, USER, 't1');
     expect(store.tables.ad_credit_grants[0].status).toBe('claimed');
     expect(store.tables.user_credits[0].balance).toBe(CREDITS_PER_AD);
@@ -189,6 +208,7 @@ describe('startAdWatchSession', () => {
 
   it('cree une session de visionnage', async () => {
     const store = new FakeStore({ profiles: [profileRow()], ad_watch_sessions: [] });
+    useAdminStore(store);
     const sessionId = await startAdWatchSession(store as never, USER);
     expect(sessionId).toBeDefined();
     expect(store.tables.ad_watch_sessions[0]).toMatchObject({ user_id: USER, used: false });
@@ -201,6 +221,7 @@ describe('completeAdWatchSession', () => {
       profiles: [profileRow()],
       ad_watch_sessions: [{ id: 's1', user_id: USER, used: true, started_at: new Date().toISOString() }],
     });
+    useAdminStore(store);
     await expect(completeAdWatchSession(store as never, USER, 's1')).rejects.toThrow(/valider/);
   });
 
@@ -209,6 +230,7 @@ describe('completeAdWatchSession', () => {
       profiles: [profileRow()],
       ad_watch_sessions: [{ id: 's1', user_id: USER, used: false, started_at: new Date().toISOString() }],
     });
+    useAdminStore(store);
     await expect(completeAdWatchSession(store as never, USER, 's1')).rejects.toThrow(/insuffisant/);
   });
 
@@ -220,6 +242,7 @@ describe('completeAdWatchSession', () => {
       ],
       user_credits: [userCreditsRow(0)],
     });
+    useAdminStore(store);
     await completeAdWatchSession(store as never, USER, 's1');
     expect(store.tables.ad_watch_sessions[0].used).toBe(true);
     expect(store.tables.user_credits[0].balance).toBe(CREDITS_PER_AD);

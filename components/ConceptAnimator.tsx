@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Zap, CheckCircle2, XCircle } from 'lucide-react';
+import { Play, Pause, RotateCcw, ChevronRight, ChevronLeft, Zap, CheckCircle2, XCircle, Trophy, Target, Lightbulb } from 'lucide-react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -82,13 +82,19 @@ const THEMES: Record<string, { bg: string; accent: string; glow: string; text: s
 };
 
 // ── SVG renderer for elements ─────────────────────────────────────────────────
-function renderElement(
-  el: AnimationElement,
-  allElements: AnimationElement[],
-  activeStep: string | null,
-  theme: typeof THEMES['default'],
-  setRef: (id: string, node: any) => void
-): React.ReactNode {
+function SvgElement({
+  el,
+  allElements,
+  activeStep,
+  theme,
+  setRef,
+}: {
+  el: AnimationElement;
+  allElements: AnimationElement[];
+  activeStep: string | null;
+  theme: typeof THEMES['default'];
+  setRef: (id: string, node: SVGElement | null) => void;
+}): React.ReactNode {
   const isVisible = !el.visibleInSteps || !activeStep || el.visibleInSteps.includes(activeStep);
   if (!isVisible) return null;
 
@@ -231,7 +237,7 @@ export default function ConceptAnimator({ data, className = '' }: Props) {
   const activeStep = stepIdx >= 0 && stepIdx < steps.length ? steps[stepIdx] : null;
 
   // ── Animation loop ───────────────────────────────────────────────────────────
-  const animate = useCallback((ts: number) => {
+  const animate = useCallback(function animateFrame(ts: number) {
     if (ts - lastFrameRef.current > 16) {
       frameRef.current += 1;
       const f = frameRef.current;
@@ -276,7 +282,7 @@ export default function ConceptAnimator({ data, className = '' }: Props) {
 
       lastFrameRef.current = ts;
     }
-    rafRef.current = requestAnimationFrame(animate);
+    rafRef.current = requestAnimationFrame(animateFrame);
   }, []);
 
   useEffect(() => {
@@ -320,8 +326,16 @@ export default function ConceptAnimator({ data, className = '' }: Props) {
   // ── SVG canvas ───────────────────────────────────────────────────────────────
   const svgElements = data.elements.map(el => {
     const isHighlighted = highlightedIds.includes(el.id);
-    const base = renderElement(el, data.elements, activeStep?.id || null, theme, setElementRef);
-    if (!base) return null;
+    const base = (
+      <SvgElement
+        key={el.id}
+        el={el}
+        allElements={data.elements}
+        activeStep={activeStep?.id || null}
+        theme={theme}
+        setRef={setElementRef}
+      />
+    );
     if (isHighlighted) {
       return (
         <g key={el.id} ref={(n) => setHighlightPulseRef(el.id, n)} style={{ transformOrigin: `${el.x}px ${el.y}px`, filter: `drop-shadow(0 0 16px ${el.glowColor || theme.glow})` }}>
@@ -512,8 +526,10 @@ export default function ConceptAnimator({ data, className = '' }: Props) {
                     })}
                   </div>
                   {quizAnswers[activeStep.id] !== undefined && (
-                    <p className="mt-2 text-xs" style={{ color: quizAnswers[activeStep.id] === (activeStep.challenge as any).correct ? '#86efac' : '#fca5a5' }}>
-                      {quizAnswers[activeStep.id] === (activeStep.challenge as any).correct ? '✅ Correct !' : `❌ La bonne réponse est : "${(activeStep.challenge as any).options[(activeStep.challenge as any).correct]}"`}
+                    <p className="mt-2 flex items-center gap-1 text-xs" style={{ color: quizAnswers[activeStep.id] === (activeStep.challenge as any).correct ? '#86efac' : '#fca5a5' }}>
+                      {quizAnswers[activeStep.id] === (activeStep.challenge as any).correct
+                        ? <><CheckCircle2 className="h-3.5 w-3.5" /> Correct !</>
+                        : <><XCircle className="h-3.5 w-3.5" /> La bonne réponse est : &quot;{(activeStep.challenge as any).options[(activeStep.challenge as any).correct]}&quot;</>}
                     </p>
                   )}
                 </>
@@ -598,7 +614,9 @@ export default function ConceptAnimator({ data, className = '' }: Props) {
       {/* ── Final Quiz ── */}
       {showFinalQuiz && data.finalQuiz && (
         <div className="px-5 py-5 border-t border-white/10" style={{ background: 'rgba(0,0,0,0.5)' }}>
-          <p className="text-sm font-bold mb-1" style={{ color: theme.accent }}>🏆 Quiz Final</p>
+          <p className="mb-1 flex items-center gap-1.5 text-sm font-bold" style={{ color: theme.accent }}>
+            <Trophy className="h-4 w-4" /> Quiz Final
+          </p>
           <p className="text-sm font-semibold mb-4" style={{ color: theme.text }}>
             {data.finalQuiz.question}
           </p>
@@ -637,7 +655,9 @@ export default function ConceptAnimator({ data, className = '' }: Props) {
               border: `1px solid ${finalQuizAnswer === data.finalQuiz.correct ? '#22c55e44' : '#ef444444'}`,
               color: finalQuizAnswer === data.finalQuiz.correct ? '#86efac' : '#fca5a5',
             }}>
-              {finalQuizAnswer === data.finalQuiz.correct ? '🎯 ' : '💡 '}
+              {finalQuizAnswer === data.finalQuiz.correct
+                ? <Target className="mr-1 inline h-3.5 w-3.5" />
+                : <Lightbulb className="mr-1 inline h-3.5 w-3.5" />}
               {data.finalQuiz.explanation}
             </div>
           )}

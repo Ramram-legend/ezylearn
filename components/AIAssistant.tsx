@@ -190,7 +190,7 @@ export default function AIAssistant() {
           
           {/* Tooltip */}
           <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 rounded-xl bg-card border border-border px-3 py-2 text-sm font-bold text-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 whitespace-nowrap">
-            Besoin d'aide ? 👋
+            Besoin d&apos;aide ?
           </div>
         </button>
       )}

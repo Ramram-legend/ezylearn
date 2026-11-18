@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getAuthContext, errorResponse, unauthorizedResponse } from '@/lib/api-utils';
 import { computeAgeGroup } from '@/lib/gamification';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const profileSchema = z.object({
   display_name: z.string().trim().min(1).max(80).optional(),
@@ -56,8 +57,9 @@ export async function POST(request: Request) {
 
   const { display_name, age, interests } = parsed.data;
   const age_group = computeAgeGroup(age);
+  const admin = createAdminClient();
 
-  const { data, error } = await auth.supabase
+  const { data, error } = await admin
     .from('profiles')
     .upsert(
       {
@@ -78,25 +80,35 @@ export async function POST(request: Request) {
   }
 
   // Ensure user_stats has +50 XP onboarding reward
-  const { data: existingStats } = await auth.supabase
+  const { data: existingStats, error: statsReadError } = await admin
     .from('user_stats')
     .select('total_xp')
     .eq('user_id', auth.userId)
     .maybeSingle();
 
+  if (statsReadError) {
+    return errorResponse('Profil enregistré, mais impossible de vérifier les statistiques.', 500);
+  }
+
   const today = new Date().toISOString().split('T')[0];
   if (!existingStats) {
-    await auth.supabase.from('user_stats').insert({
+    const { error: statsInsertError } = await admin.from('user_stats').insert({
       user_id: auth.userId,
       total_xp: 50,
       current_streak: 1,
       last_activity_date: today,
     });
+    if (statsInsertError) {
+      return errorResponse('Profil enregistré, mais impossible d’initialiser les statistiques.', 500);
+    }
   } else if (existingStats.total_xp === 150 || existingStats.total_xp === 0) {
-    await auth.supabase
+    const { error: statsUpdateError } = await admin
       .from('user_stats')
       .update({ total_xp: existingStats.total_xp + 50, updated_at: new Date().toISOString() })
       .eq('user_id', auth.userId);
+    if (statsUpdateError) {
+      return errorResponse('Profil enregistré, mais impossible d’attribuer la récompense de bienvenue.', 500);
+    }
   }
 
   return NextResponse.json({ profile: data });

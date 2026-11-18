@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Sparkles, ArrowLeft, CheckCircle2, XCircle, Award, Flame, Lightbulb, BookOpen, ArrowRight, HelpCircle, Globe, Maximize2, X, Image as ImageIcon, Volume2, VolumeX, MessageSquare, Send, Bot } from 'lucide-react';
+import { Sparkles, ArrowLeft, CheckCircle2, XCircle, Award, Flame, Lightbulb, Target, BookOpen, ArrowRight, HelpCircle, Globe, Maximize2, X, Image as ImageIcon, Volume2, VolumeX, MessageSquare, Send, Bot } from 'lucide-react';
 import { getDemoLessons, getDemoStats, saveDemoStats, saveDemoEarnedBadge, saveDemoLesson, continueDemoLesson, getDemoProfile } from '@/lib/demo-engine';
 import { computeStreakUpdate } from '@/lib/gamification';
 import { useAuth } from '@/hooks/useAuth';
@@ -210,6 +210,16 @@ export default function LessonDetailPage() {
     }
   }, [lesson, language, router]);
 
+  const triggerConfetti = useCallback(() => {
+    try {
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 },
+      });
+    } catch {}
+  }, []);
+
   const handleSubmitQuiz = useCallback(async () => {
     if (!lesson || userAnswers.includes(-1)) return;
     setIsSubmitting(true);
@@ -276,17 +286,7 @@ export default function LessonDetailPage() {
     if (score > 0) {
       triggerConfetti();
     }
-  }, [lesson, userAnswers, refreshStats]);
-
-  const triggerConfetti = () => {
-    try {
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 },
-      });
-    } catch {}
-  };
+  }, [lesson, userAnswers, refreshStats, triggerConfetti]);
 
   if (loading) {
     return (
@@ -303,7 +303,7 @@ export default function LessonDetailPage() {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
         <h2 className="text-2xl font-bold text-foreground mb-2">Leçon Introuvable</h2>
-        <p className="text-sm text-muted-foreground mb-6">Cette leçon a été supprimée ou n'a pas encore été générée.</p>
+        <p className="text-sm text-muted-foreground mb-6">Cette leçon a été supprimée ou n&apos;a pas encore été générée.</p>
         <button
           onClick={() => router.push('/dashboard')}
           className="btn-primary"
@@ -392,7 +392,7 @@ export default function LessonDetailPage() {
             <div className="card p-5 bg-brand-blue/5 border-brand-blue/20 space-y-2">
               <div className="flex items-center gap-2 text-brand-blue font-bold text-sm">
                 <BookOpen className="h-4 w-4" />
-                <span>📌 Synthèse des acquis précédents</span>
+                <span>Synthèse des acquis précédents</span>
               </div>
               <p className="text-sm text-foreground/90 leading-relaxed font-medium">
                 {lesson.content.previous_summary}
@@ -415,7 +415,7 @@ export default function LessonDetailPage() {
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-brand-blue bg-brand-blue/10 border border-brand-blue/20 px-3 py-1.5 rounded-full">
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>Adaptée selon vos centres d'intérêt</span>
+                <span>Adaptée selon vos centres d&apos;intérêt</span>
               </div>
             </div>
             
@@ -424,40 +424,37 @@ export default function LessonDetailPage() {
             </p>
           </div>
 
-          {/* New Interactive Sections Memoized */}
-          {React.useMemo(() => {
-            if (!lesson.content.sections || lesson.content.sections.length === 0) return null;
-            return (
-              <div className="space-y-6">
-                {lesson.content.sections.map((section, idx) => {
-                  const bodyWithoutImages = section.body_markdown.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '');
-                  return (
-                    <div key={idx} className="card p-6 sm:p-8 space-y-4 overflow-hidden">
-                      <h3 className="font-bold text-xl text-foreground flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-blue text-white text-sm shrink-0">
-                          {idx + 1}
-                        </span>
-                        {section.heading}
-                      </h3>
-                      
-                      <div className="prose dark:prose-invert max-w-none prose-p:leading-relaxed prose-a:text-brand-blue prose-p:text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-li:text-foreground text-foreground">
-                        <ReactMarkdown 
-                          remarkPlugins={[remarkGfm, remarkMath]} 
-                          rehypePlugins={[rehypeKatex]}
-                        >
-                          {bodyWithoutImages}
-                        </ReactMarkdown>
-                      </div>
+          {/* New Interactive Sections */}
+          {lesson.content.sections && lesson.content.sections.length > 0 && (
+            <div className="space-y-6">
+              {lesson.content.sections.map((section, idx) => {
+                const bodyWithoutImages = section.body_markdown.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '');
+                return (
+                  <div key={idx} className="card p-6 sm:p-8 space-y-4 overflow-hidden">
+                    <h3 className="font-bold text-xl text-foreground flex items-center gap-2">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-blue text-white text-sm shrink-0">
+                        {idx + 1}
+                      </span>
+                      {section.heading}
+                    </h3>
 
-                      {section.visualization && (
-                        <InteractiveVisualizer visualization={section.visualization} />
-                      )}
+                    <div className="prose dark:prose-invert max-w-none prose-p:leading-relaxed prose-a:text-brand-blue prose-p:text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-li:text-foreground text-foreground">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                      >
+                        {bodyWithoutImages}
+                      </ReactMarkdown>
                     </div>
-                  );
-                })}
-              </div>
-            );
-          }, [lesson.content.sections])}
+
+                    {section.visualization && (
+                      <InteractiveVisualizer visualization={section.visualization} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Fallback for old Visual Steps format */}
           {!lesson.content.sections && lesson.content.visual_steps && lesson.content.visual_steps.length > 0 && (
@@ -515,7 +512,7 @@ export default function LessonDetailPage() {
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[2px]">
                 <Maximize2 className="h-4 w-4" />
-                Agrandir l'illustration
+                Agrandir l&apos;illustration
               </div>
             </div>
             <div className="px-4 py-3 space-y-1.5 bg-card">
@@ -596,7 +593,7 @@ export default function LessonDetailPage() {
               </div>
               <div className="px-4 py-3 space-y-1">
                 <span className="text-[10px] font-bold text-brand-blue uppercase tracking-wider">
-                  📸 Complément Visuel
+                  <ImageIcon className="mr-1 inline h-3.5 w-3.5" /> Complément Visuel
                 </span>
                 <p className="text-xs text-muted-foreground leading-snug">
                   {img.alt}
@@ -713,7 +710,9 @@ export default function LessonDetailPage() {
 
               <div>
                 <h3 className="text-2xl font-extrabold text-foreground">
-                  {quizResult.isPerfect ? '🎯 Score Parfait ! Excellent travail !' : '👏 Bravo d\'avoir complété ce quiz !'}
+                  {quizResult.isPerfect
+                    ? <><Target className="mr-2 inline h-6 w-6" /> Score Parfait ! Excellent travail !</>
+                    : <>Bravo d&apos;avoir complété ce quiz !</>}
                 </h3>
                 <p className="mt-2 text-base text-muted-foreground">
                   Tu as obtenu <span className="font-bold text-brand-yellow">{quizResult.score} / {quizResult.total}</span> réponses correctes.
@@ -792,7 +791,7 @@ export default function LessonDetailPage() {
                 Vous avez maintenant une compréhension complète de cette leçon.
               </h3>
               <p className="mt-2 text-sm text-muted-foreground max-w-lg mx-auto">
-                Félicitations ! Vous avez parcouru l'ensemble des chapitres progressifs et maîtrisé l'ensemble des notions sur <strong className="text-foreground">"{lesson.topic}"</strong>.
+                Félicitations ! Vous avez parcouru l&apos;ensemble des chapitres progressifs et maîtrisé l&apos;ensemble des notions sur <strong className="text-foreground">&quot;{lesson.topic}&quot;</strong>.
               </p>
             </div>
             <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
@@ -821,7 +820,7 @@ export default function LessonDetailPage() {
                   <span className="rounded-full bg-brand-blue/10 border border-brand-blue/20 px-3 py-0.5 text-xs font-extrabold text-brand-blue">
                     Chapitre {chapterIndex + 1} sur {totalChapters}
                   </span>
-                  <span className="text-xs text-muted-foreground font-medium">Continuation d'apprentissage</span>
+                  <span className="text-xs text-muted-foreground font-medium">Continuation d&apos;apprentissage</span>
                 </div>
                 <h3 className="text-xl font-extrabold text-foreground">
                   Approfondir cette leçon : {lesson.topic}
@@ -845,7 +844,7 @@ export default function LessonDetailPage() {
                 ) : (
                   <>
                     <Sparkles className="h-5 w-5" />
-                    Continuer l'apprentissage
+                    Continuer l&apos;apprentissage
                     <ArrowRight className="h-5 w-5" />
                   </>
                 )}
@@ -955,6 +954,7 @@ const AiChatPanel = React.memo(({ lesson, language }: { lesson: Lesson, language
           userContext: { profile: demoProfile } 
         })
       });
+      AiChatPanel.displayName = 'AiChatPanel';
       if (res.ok) {
         const data = await res.json();
         setChatMessages([...newMsgs, { role: 'ai', content: data.reply }]);
@@ -985,7 +985,7 @@ const AiChatPanel = React.memo(({ lesson, language }: { lesson: Lesson, language
             {chatMessages.length === 0 ? (
               <div className="text-center text-sm text-muted-foreground mt-10">
                 <Bot className="h-10 w-10 mx-auto text-brand-blue/40 mb-2" />
-                <p>Tu n'as pas compris quelque chose ? Pose-moi une question sur "{lesson?.topic}" !</p>
+                <p>Tu n&apos;as pas compris quelque chose ? Pose-moi une question sur &quot;{lesson?.topic}&quot; !</p>
               </div>
             ) : (
               chatMessages.map((msg, i) => (

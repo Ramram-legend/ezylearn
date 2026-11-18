@@ -125,6 +125,7 @@ export interface LessonContent {
   previous_summary?: string;
   is_completed?: boolean;
   parent_lesson_id?: string;
+  demo_imported?: boolean;
 }
 
 export interface Lesson {

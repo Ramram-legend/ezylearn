@@ -27,7 +27,7 @@ export default function DashboardError({
         <div className="space-y-2">
           <h2 className="text-xl font-bold text-foreground">Erreur du tableau de bord</h2>
           <p className="text-muted-foreground text-sm">
-            Une erreur s'est produite lors du chargement de votre tableau de bord.
+            Une erreur s&apos;est produite lors du chargement de votre tableau de bord.
           </p>
         </div>
 

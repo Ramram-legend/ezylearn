@@ -61,9 +61,9 @@ export async function GET() {
   const quests: DailyQuest[] = [
     {
       id: 'quest-lesson-today',
-      title: '🎯 Explorateur du Jour',
+      title: 'Explorateur du Jour',
       desc: 'Génère 2 nouvelles leçons aujourd\'hui',
-      icon: '📚',
+      icon: 'quest-lesson-today',
       progress: Math.min(lessonsToday, 2),
       total: 2,
       xpBonus: 50,
@@ -71,9 +71,9 @@ export async function GET() {
     },
     {
       id: 'quest-perfect-quiz',
-      title: '🏆 Maître du Quiz',
+      title: 'Maître du Quiz',
       desc: 'Obtiens un score parfait (3/3) à un quiz',
-      icon: '🏆',
+      icon: 'quest-perfect-quiz',
       progress: Math.min(perfectCount, 1),
       total: 1,
       xpBonus: 80,
@@ -81,9 +81,9 @@ export async function GET() {
     },
     {
       id: 'quest-streak',
-      title: '🔥 Série Enflammée',
+      title: 'Série Enflammée',
       desc: `Maintiens ta série active (${stats.current_streak} jour${stats.current_streak > 1 ? 's' : ''})`,
-      icon: '🔥',
+      icon: 'quest-streak',
       progress: Math.min(stats.current_streak, 3),
       total: 3,
       xpBonus: 60,
@@ -91,9 +91,9 @@ export async function GET() {
     },
     {
       id: 'quest-xp-today',
-      title: '⚡ Accumulateur d\'XP',
+      title: 'Accumulateur d\'XP',
       desc: 'Atteins 500 XP au total',
-      icon: '⚡',
+      icon: 'quest-xp-today',
       progress: Math.min(stats.total_xp, 500),
       total: 500,
       xpBonus: 100,

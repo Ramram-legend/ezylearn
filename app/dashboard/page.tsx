@@ -3,10 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Sparkles, Flame, Award, BookOpen, PlusCircle, ArrowRight, Play, CheckCircle, Lightbulb, Zap, Target, CheckCircle2, Star, X, AlertTriangle } from 'lucide-react';
-import { getDemoProfile, getDemoStats, getDemoLessons, createDemoLesson } from '@/lib/demo-engine';
+import { Sparkles, Flame, Award, BookOpen, PlusCircle, ArrowRight, Play, Check, CheckCircle, Lightbulb, Zap, Target, CheckCircle2, Star, X, AlertTriangle, Leaf, Rocket, Network, Landmark } from 'lucide-react';
+import { getDemoProfile, getDemoLessons, createDemoLesson } from '@/lib/demo-engine';
 import type { Profile, UserStats, Lesson } from '@/types/database';
 import CreditBalance from '@/components/CreditBalance';
+import { PlatformIcon } from '@/components/PlatformIcon';
 import { useLanguage } from '@/hooks/useLanguage';
 
 interface DailyQuest {
@@ -53,24 +54,24 @@ export default function DashboardPage() {
           // Logged in user: sync demo progress if any
           setProfile(data.profile);
           const dLessons = getDemoLessons();
-          const dStats = getDemoStats();
           
-          if (dLessons.length > 0 || dStats.total_xp > 50) {
-            await fetch('/api/sync-demo', {
+          if (dLessons.length > 0) {
+            const syncResponse = await fetch('/api/sync-demo', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ demoStats: dStats, demoLessons: dLessons })
+              body: JSON.stringify({ demoLessons: dLessons })
             });
-            localStorage.removeItem('easylearn_demo_lessons');
-            localStorage.removeItem('easylearn_demo_stats');
-            localStorage.removeItem('easylearn_demo_profile');
-            
-            // Refetch to get updated stats and lessons
-            const ref = await fetch('/api/dashboard');
-            if (ref.ok) {
-              const rData = await ref.json();
-              if (rData.stats) setStats(rData.stats);
-              if (rData.recentLessons) setRecentLessons(rData.recentLessons);
+            if (syncResponse.ok) {
+              localStorage.removeItem('easylearn_demo_lessons');
+              localStorage.removeItem('easylearn_demo_stats');
+              localStorage.removeItem('easylearn_demo_profile');
+
+              const ref = await fetch('/api/dashboard');
+              if (ref.ok) {
+                const rData = await ref.json();
+                if (rData.stats) setStats(rData.stats);
+                if (rData.recentLessons) setRecentLessons(rData.recentLessons);
+              }
             }
           } else {
             if (data.stats) setStats(data.stats);
@@ -135,10 +136,10 @@ export default function DashboardPage() {
   };
 
   const suggestions = [
-    { topic: 'La Photosynthèse & Chloroplastes', subject: 'Biologie', icon: '🌿' },
-    { topic: 'Les Trous Noirs & l\'Horizon des Événements', subject: 'Espace', icon: '🚀' },
-    { topic: 'Intelligence Artificielle & Réseaux de Neurones', subject: 'Informatique', icon: '🤖' },
-    { topic: 'La Pyramide de Khéops', subject: 'Histoire', icon: '📜' },
+    { topic: 'La Photosynthèse & Chloroplastes', subject: 'Biologie', icon: Leaf },
+    { topic: 'Les Trous Noirs & l\'Horizon des Événements', subject: 'Espace', icon: Rocket },
+    { topic: 'Intelligence Artificielle & Réseaux de Neurones', subject: 'Informatique', icon: Network },
+    { topic: 'La Pyramide de Khéops', subject: 'Histoire', icon: Landmark },
   ];
 
   if (!profile || !stats) {
@@ -186,7 +187,11 @@ export default function DashboardPage() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-bold text-brand-blue border border-brand-blue/20">
-                {profile.age_group === 'enfant' ? `👶 ${t('child_mode')}` : profile.age_group === 'college_lycee' ? `🎒 ${t('teen_mode')}` : `🎓 ${t('adult_mode')}`} ({profile.age} {t('years_old')})
+                <PlatformIcon
+                  name={profile.age_group === 'enfant' ? 'child' : profile.age_group === 'college_lycee' ? 'teen' : 'adult'}
+                  className="mr-1 inline h-3.5 w-3.5"
+                />
+                {profile.age_group === 'enfant' ? t('child_mode') : profile.age_group === 'college_lycee' ? t('teen_mode') : t('adult_mode')} ({profile.age} {t('years_old')})
               </span>
               <span className="rounded-full bg-brand-green/10 px-3 py-1 text-xs font-bold text-brand-green border border-brand-green/20">
                 {t('free_plan')} (5{t('per_day')})
@@ -194,7 +199,7 @@ export default function DashboardPage() {
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground">
-              {t('welcome_back')}, <span className="text-brand-blue">{profile.display_name ?? t('learner')}</span> ! 👋
+              {t('welcome_back')}, <span className="text-brand-blue">{profile.display_name ?? t('learner')}</span> !
             </h1>
             <p className="mt-2 text-base text-foreground">
               {t('ready_explore')}
@@ -291,33 +296,43 @@ export default function DashboardPage() {
 
           <form onSubmit={handleQuickGenerate} className="space-y-4">
             <div>
+              <label htmlFor="quick-topic" className="mb-2 block text-sm font-semibold text-foreground">
+                {t('topic_label')}
+              </label>
               <input
+                id="quick-topic"
                 type="text"
                 value={quickTopic}
                 onChange={(e) => setQuickTopic(e.target.value)}
                 placeholder={t('example_placeholder')}
-                className="w-full rounded-xl border border-border bg-background px-4 py-3.5 text-foreground placeholder:text-foreground focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                className="min-h-12 w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2"
                 required
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <select
-                value={quickSubject}
-                onChange={(e) => setQuickSubject(e.target.value)}
-                className="w-full sm:w-48 rounded-xl border border-border bg-background px-3.5 py-3 text-sm text-foreground focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
-              >
-                <option value="Sciences">{t('sciences')}</option>
-                <option value="Informatique">{t('informatique')}</option>
-                <option value="Espace">{t('espace')}</option>
-                <option value="Histoire">{t('histoire')}</option>
-                <option value="Mathématiques">{t('mathematiques')}</option>
-              </select>
+            <div className="flex flex-col sm:flex-row items-end gap-3">
+              <div className="w-full sm:w-48">
+                <label htmlFor="quick-subject" className="mb-2 block text-sm font-semibold text-foreground">
+                  {t('subject_label')}
+                </label>
+                <select
+                  id="quick-subject"
+                  value={quickSubject}
+                  onChange={(e) => setQuickSubject(e.target.value)}
+                  className="min-h-12 w-full rounded-xl border border-border bg-background px-3.5 py-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2"
+                >
+                  <option value="Sciences">{t('sciences')}</option>
+                  <option value="Informatique">{t('informatique')}</option>
+                  <option value="Espace">{t('espace')}</option>
+                  <option value="Histoire">{t('histoire')}</option>
+                  <option value="Mathématiques">{t('mathematiques')}</option>
+                </select>
+              </div>
 
               <button
                 type="submit"
                 disabled={isGenerating}
-                className="w-full sm:w-auto flex-1 btn-primary py-3"
+                className="min-h-12 w-full sm:w-auto flex-1 btn-primary py-3 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isGenerating ? (
                   <>
@@ -343,7 +358,7 @@ export default function DashboardPage() {
                   key={idea}
                   type="button"
                   onClick={() => setQuickTopic(idea)}
-                  className="rounded-full border border-border bg-muted px-3 py-1.5 text-xs text-foreground hover:border-brand-blue hover:text-brand-blue transition-colors font-medium"
+                  className="min-h-11 cursor-pointer rounded-full border border-border bg-muted px-4 py-2 text-xs text-foreground transition-colors hover:border-brand-blue hover:text-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2 font-medium"
                 >
                   + {idea}
                 </button>
@@ -361,26 +376,32 @@ export default function DashboardPage() {
           <p className="text-sm text-foreground">{t('inspired_by_passions')} ({profile.interests.join(', ')})</p>
 
           <div className="space-y-3 pt-2">
-            {suggestions.map((sugg, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => {
-                  setQuickTopic(sugg.topic);
-                  setQuickSubject(sugg.subject);
-                }}
-                className="w-full flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-3 text-left hover:border-brand-blue hover:bg-muted transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{sugg.icon}</span>
-                  <div>
-                    <span className="block text-sm font-bold text-foreground group-hover:text-brand-blue transition-colors">{sugg.topic}</span>
-                    <span className="text-[11px] text-foreground font-medium">{sugg.subject}</span>
+            {suggestions.map((sugg) => {
+              const Icon = sugg.icon;
+
+              return (
+                <button
+                  key={sugg.topic}
+                  type="button"
+                  onClick={() => {
+                    setQuickTopic(sugg.topic);
+                    setQuickSubject(sugg.subject);
+                  }}
+                  className="min-h-14 w-full cursor-pointer flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-3 text-left hover:border-brand-blue hover:bg-muted transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
+                      <Icon aria-hidden="true" className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <span className="block text-sm font-bold text-foreground group-hover:text-brand-blue transition-colors">{sugg.topic}</span>
+                      <span className="text-[11px] text-foreground font-medium">{sugg.subject}</span>
+                    </div>
                   </div>
-                </div>
-                <Play className="h-4 w-4 text-foreground group-hover:text-brand-blue transition-colors" />
-              </button>
-            ))}
+                  <Play className="h-4 w-4 text-foreground group-hover:text-brand-blue transition-colors" />
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -399,8 +420,15 @@ export default function DashboardPage() {
           </div>
 
           {recentLessons.length === 0 ? (
-            <div className="card p-8 text-center text-foreground">
-              {t('no_lessons_yet')}
+            <div className="card flex flex-col items-center gap-4 p-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue">
+                <BookOpen aria-hidden="true" className="h-6 w-6" />
+              </div>
+              <p className="max-w-md text-foreground">{t('no_lessons_yet')}</p>
+              <Link href="/lessons/generate" className="btn-ghost min-h-11">
+                {t('create_custom_lesson')}
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -446,7 +474,8 @@ export default function DashboardPage() {
               <h2 className="text-xl font-bold text-foreground">{t('daily_quests')}</h2>
             </div>
             <span className="text-xs font-bold text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
-              {dailyQuests.filter(q => q.completed).length}/{dailyQuests.length} ✓
+              {dailyQuests.filter(q => q.completed).length}/{dailyQuests.length}
+              <Check className="ml-1 inline h-3.5 w-3.5 text-brand-green" />
             </span>
           </div>
           
@@ -461,7 +490,9 @@ export default function DashboardPage() {
             ) : (
               dailyQuests.map((quest) => {
                 const isCompleted = quest.completed;
-                const percent = Math.round((quest.progress / quest.total) * 100);
+                const progressTotal = Math.max(quest.total, 0);
+                const progress = Math.min(Math.max(quest.progress, 0), progressTotal);
+                const percent = progressTotal > 0 ? Math.round((progress / progressTotal) * 100) : 0;
                 
                 return (
                   <div key={quest.id} className={`p-3.5 rounded-xl border transition-all ${
@@ -471,7 +502,7 @@ export default function DashboardPage() {
                   }`}>
                     <div className="flex items-start justify-between mb-1.5 gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-base">{quest.icon}</span>
+                        <PlatformIcon name={quest.icon} className="h-5 w-5 shrink-0" />
                         <h3 className={`text-sm font-bold ${isCompleted ? 'text-brand-green' : 'text-foreground'}`}>
                           {quest.title}
                         </h3>
@@ -487,8 +518,16 @@ export default function DashboardPage() {
                     <p className="text-xs text-muted-foreground mb-2 ml-6">{quest.desc}</p>
                     
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-muted/60 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        role="progressbar"
+                        aria-label={quest.title}
+                        aria-valuemin={0}
+                        aria-valuemax={progressTotal}
+                        aria-valuenow={progress}
+                        className="flex-1 bg-muted/60 h-1.5 rounded-full overflow-hidden"
+                      >
                         <div 
+                          aria-hidden="true"
                           className={`h-full transition-all duration-700 rounded-full ${
                             isCompleted ? 'bg-brand-green' : 'bg-gradient-to-r from-brand-blue to-purple-500'
                           }`}
@@ -496,7 +535,7 @@ export default function DashboardPage() {
                         />
                       </div>
                       <span className="text-xs font-semibold text-muted-foreground shrink-0">
-                        {quest.progress}/{quest.total}
+                        {progress}/{quest.total}
                       </span>
                     </div>
                     

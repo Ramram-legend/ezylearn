@@ -22,6 +22,7 @@ export class FakeQuery {
   private rows: Row[];
   private filters: Array<(r: Row) => boolean> = [];
   private countRequested = false;
+  private pendingUpdate: Row | null = null;
 
   constructor(store: FakeStore, tableName: string) {
     this.store = store;
@@ -67,7 +68,7 @@ export class FakeQuery {
   }
 
   update(partial: Row): this {
-    for (const row of this.matched()) Object.assign(row, partial);
+    this.pendingUpdate = partial;
     return this;
   }
 
@@ -84,7 +85,12 @@ export class FakeQuery {
   }
 
   private matched(): Row[] {
-    return this.rows.filter((r) => this.filters.every((f) => f(r)));
+    const rows = this.rows.filter((r) => this.filters.every((f) => f(r)));
+    if (this.pendingUpdate) {
+      for (const row of rows) Object.assign(row, this.pendingUpdate);
+      this.pendingUpdate = null;
+    }
+    return rows;
   }
 
   async maybeSingle(): Promise<FakeDbResult> {

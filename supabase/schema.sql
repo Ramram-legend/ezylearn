@@ -23,19 +23,19 @@ create policy "interest_catalog_select_all"
   using (true);
 
 insert into public.interest_catalog (id, label, icon, sort_order) values
-  ('football', 'Football', '⚽', 1),
-  ('gaming', 'Gaming', '🎮', 2),
-  ('music', 'Musique', '🎵', 3),
-  ('space', 'Espace', '🚀', 4),
-  ('animals', 'Animaux', '🐾', 5),
-  ('tech', 'Tech', '🤖', 6),
-  ('cooking', 'Cuisine', '🍳', 7),
-  ('cinema', 'Cinema', '🎬', 8),
-  ('science', 'Science', '🔬', 9),
-  ('nature', 'Nature', '🌿', 10),
-  ('sports', 'Sports', '🏆', 11),
-  ('arts', 'Arts', '🎨', 12)
-on conflict (id) do nothing;
+  ('football', 'Football', 'football', 1),
+  ('gaming', 'Gaming', 'gaming', 2),
+  ('music', 'Musique', 'music', 3),
+  ('space', 'Espace', 'space', 4),
+  ('animals', 'Animaux', 'animals', 5),
+  ('tech', 'Tech', 'tech', 6),
+  ('cooking', 'Cuisine', 'cooking', 7),
+  ('cinema', 'Cinema', 'cinema', 8),
+  ('science', 'Science', 'science', 9),
+  ('nature', 'Nature', 'nature', 10),
+  ('sports', 'Sports', 'sports', 11),
+  ('arts', 'Arts', 'arts', 12)
+on conflict (id) do update set icon = excluded.icon;
 
 -- ----------------------------------------------------------------------------
 -- PROFILS (etend auth.users)
@@ -192,13 +192,13 @@ create policy "badges_select_all"
   using (true);
 
 insert into public.badges (code, label, icon, description, condition_type, condition_value) values
-  ('first_lesson', 'Premiere Lecon', '📖', 'Termine ta toute premiere lecon avec quiz.', 'lessons_count', 1),
-  ('perfect_score', 'Score Parfait', '🏆', 'Obtiens un score parfait a un quiz.', 'perfect_score', 1),
-  ('streak_3', 'Serie de 3 jours', '🔥', 'Apprends 3 jours de suite.', 'streak', 3),
-  ('streak_7', 'Serie de 7 jours', '⚡', 'Apprends 7 jours de suite.', 'streak', 7),
-  ('lessons_10', '10 Lecons', '📚', 'Termine 10 lecons.', 'lessons_count', 10),
-  ('lessons_50', '50 Lecons', '🎓', 'Termine 50 lecons.', 'lessons_count', 50)
-on conflict (code) do nothing;
+  ('first_lesson', 'Premiere Lecon', 'first_lesson', 'Termine ta toute premiere lecon avec quiz.', 'lessons_count', 1),
+  ('perfect_score', 'Score Parfait', 'perfect_score', 'Obtiens un score parfait a un quiz.', 'perfect_score', 1),
+  ('streak_3', 'Serie de 3 jours', 'streak_3', 'Apprends 3 jours de suite.', 'streak', 3),
+  ('streak_7', 'Serie de 7 jours', 'streak_7', 'Apprends 7 jours de suite.', 'streak', 7),
+  ('lessons_10', '10 Lecons', 'lessons_10', 'Termine 10 lecons.', 'lessons_count', 10),
+  ('lessons_50', '50 Lecons', 'lessons_50', 'Termine 50 lecons.', 'lessons_count', 50)
+on conflict (code) do update set icon = excluded.icon;
 
 create table if not exists public.user_badges (
   user_id uuid not null references public.profiles (id) on delete cascade,
@@ -421,4 +421,30 @@ CREATE POLICY "ad_watch_sessions_update_own"
   ON public.ad_watch_sessions FOR UPDATE
   USING (auth.uid() = user_id);
 
+-- Browser clients may read their own records but cannot grant themselves
+-- paid plans, credits, XP, badges, or lessons. Server routes use service_role.
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+  ON TABLE public.profiles, public.lessons, public.quiz_attempts, public.user_stats,
+    public.user_badges, public.user_credits, public.user_daily_usage,
+    public.ad_credit_grants, public.ad_watch_sessions
+  FROM anon, authenticated;
+
+GRANT INSERT (id, display_name, age, age_group, interests, updated_at)
+  ON TABLE public.profiles TO authenticated;
+GRANT UPDATE (display_name, age, age_group, interests, updated_at)
+  ON TABLE public.profiles TO authenticated;
+
+REVOKE EXECUTE ON FUNCTION public.decrement_bonus_credit(uuid)
+  FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.increment_daily_usage(uuid)
+  FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.increment_bonus_credit(uuid, integer)
+  FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.decrement_bonus_credit(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.increment_daily_usage(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.increment_bonus_credit(uuid, integer) TO service_role;
+
+ALTER FUNCTION public.decrement_bonus_credit(uuid) SET search_path = '';
+ALTER FUNCTION public.increment_daily_usage(uuid) SET search_path = '';
+ALTER FUNCTION public.increment_bonus_credit(uuid, integer) SET search_path = '';
 

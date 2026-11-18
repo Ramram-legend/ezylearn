@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getAuthContext, errorResponse, unauthorizedResponse } from '@/lib/api-utils';
 import { calculateXP, computeStreakUpdate, checkAndAwardBadges } from '@/lib/gamification';
 import type { QuizQuestion, UserStats } from '@/types/database';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const submitSchema = z.object({
   lessonId: z.string().uuid('lessonId invalide.'),
@@ -36,13 +37,16 @@ export async function POST(request: Request) {
   // 1. Recupere la lecon (et donc les bonnes reponses), verifie l'appartenance.
   const { data: lesson, error: lessonError } = await auth.supabase
     .from('lessons')
-    .select('id, quiz')
+    .select('id, quiz, content')
     .eq('id', lessonId)
     .eq('user_id', auth.userId)
     .maybeSingle();
 
   if (lessonError) return errorResponse('Impossible de recuperer la lecon.', 500);
   if (!lesson) return errorResponse('Lecon introuvable.', 404);
+  if (lesson.content?.demo_imported === true) {
+    return errorResponse('Les quiz importés ne rapportent pas de points.', 409);
+  }
 
   const quiz = lesson.quiz as QuizQuestion[];
   if (answers.length !== quiz.length) {
@@ -55,6 +59,7 @@ export async function POST(request: Request) {
   const total = quiz.length;
   const xpEarned = calculateXP(score, total);
   const isPerfect = score === total;
+  const admin = createAdminClient();
 
   // 3. Est-ce la premiere fois que cette lecon est completee ?
   const { count: priorAttempts, error: priorError } = await auth.supabase
@@ -67,7 +72,7 @@ export async function POST(request: Request) {
   const isFirstCompletion = (priorAttempts ?? 0) === 0;
 
   // 4. Enregistre la tentative.
-  const { error: attemptError } = await auth.supabase.from('quiz_attempts').insert({
+  const { error: attemptError } = await admin.from('quiz_attempts').insert({
     lesson_id: lessonId,
     user_id: auth.userId,
     score,
@@ -111,14 +116,14 @@ export async function POST(request: Request) {
     updated_at: new Date().toISOString(),
   };
 
-  const { error: upsertError } = await auth.supabase
+  const { error: upsertError } = await admin
     .from('user_stats')
     .upsert(updatedStats, { onConflict: 'user_id' });
 
   if (upsertError) return errorResponse('Impossible de mettre a jour les statistiques.', 500);
 
   // 6. Verifie et attribue les nouveaux badges.
-  const newBadges = await checkAndAwardBadges(auth.supabase, auth.userId, {
+  const newBadges = await checkAndAwardBadges(admin, auth.userId, {
     stats: updatedStats,
     justScoredPerfect: isPerfect,
   });

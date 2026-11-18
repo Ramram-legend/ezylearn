@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['**/*.test.ts'],
+    exclude: ['node_modules/**', 'andrej-karpathy-skills/**', 'ui-ux-pro-max-skill/**'],
     coverage: {
       provider: 'v8',
       include: ['lib/**'],

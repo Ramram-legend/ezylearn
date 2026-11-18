@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Award, Sparkles, Flame, CheckCircle, Lock, Trophy, ArrowRight } from 'lucide-react';
 import { INITIAL_BADGES, getDemoStats, getDemoEarnedBadges } from '@/lib/demo-engine';
+import { PlatformIcon } from '@/components/PlatformIcon';
 import type { Badge, UserStats } from '@/types/database';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -140,7 +141,7 @@ export default function BadgesPage() {
                         : 'bg-muted border border-border filter grayscale'
                     }`}
                   >
-                    {badge.icon}
+                    <PlatformIcon name={badge.code} className="h-8 w-8" />
                   </div>
 
                   {isEarned ? (

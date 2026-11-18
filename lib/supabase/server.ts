@@ -7,8 +7,8 @@ import { cookies } from 'next/headers';
  * Respecte les policies RLS : chaque requete agit avec les droits de
  * l'utilisateur connecte (via son JWT), jamais avec des droits admin.
  */
-export function createClient() {
-  const cookieStore = cookies();
+export async function createClient() {
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

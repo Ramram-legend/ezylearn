@@ -152,14 +152,15 @@ export default function Navbar() {
           {mounted && (
             <button
               onClick={() => setRightSidebarOpen(true)}
-              className="h-9 w-9 flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+              className="h-11 w-11 flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+              aria-label={t('settings')}
             >
               <Settings className="h-4 w-4" />
             </button>
           )}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-muted/50 text-muted-foreground transition-colors hover:bg-muted"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted/50 text-muted-foreground transition-colors hover:bg-muted"
             aria-label="Menu mobile"
           >
             {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}

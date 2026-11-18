@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { User, Check, Sparkles, Shield, Heart, Crown, CheckCircle2, Zap } from 'lucide-react';
 import { getDemoProfile, saveDemoProfile, CATALOG_INTERESTS } from '@/lib/demo-engine';
+import { PlatformIcon } from '@/components/PlatformIcon';
 import type { Profile, Plan } from '@/types/database';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -106,7 +107,7 @@ export default function ProfilePage() {
       ],
       current: profile?.plan === 'plus',
       buttonText: 'Passer à EasyLearn Plus',
-      buttonStyle: 'bg-gradient-to-r from-indigo-600 to-purple-600 text-foreground font-bold shadow-lg shadow-indigo-500/25',
+      buttonStyle: 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold shadow-lg shadow-indigo-500/25',
     },
     {
       id: 'famille',
@@ -159,7 +160,7 @@ export default function ProfilePage() {
 
       {savedMsg && (
         <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-4 text-center text-sm font-semibold text-emerald-300">
-          ✓ {t('changes_saved')}
+          <Check className="mr-1 inline h-4 w-4" /> {t('changes_saved')}
         </div>
       )}
 
@@ -205,7 +206,7 @@ export default function ProfilePage() {
           {/* Interests Grid Selection */}
           <div>
             <label className="block text-xs font-semibold text-muted-foreground mb-3">
-              Vos Centres d'Intérêt ({selectedInterests.length} sélectionnés) :
+              Vos Centres d&apos;Intérêt ({selectedInterests.length} sélectionnés) :
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {CATALOG_INTERESTS.map((item) => {
@@ -221,7 +222,7 @@ export default function ProfilePage() {
                         : 'border-border bg-card/40 text-muted-foreground hover:border-border'
                     }`}
                   >
-                    <span>{item.icon}</span>
+                    <PlatformIcon name={item.icon} className="h-4 w-4 shrink-0" />
                     <span className="truncate">{item.label}</span>
                   </button>
                 );
@@ -243,7 +244,7 @@ export default function ProfilePage() {
       <div className="space-y-6">
         <div>
           <h2 className="font-heading text-2xl font-extrabold text-foreground">Formules & Tarifs</h2>
-          <p className="text-xs text-muted-foreground mt-1">Choisissez le plan adapté à vos besoins d'apprentissage.</p>
+          <p className="text-xs text-muted-foreground mt-1">Choisissez le plan adapté à vos besoins d&apos;apprentissage.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -252,27 +253,27 @@ export default function ProfilePage() {
               key={plan.id}
               className={`glass-card rounded-3xl p-6 border flex flex-col justify-between space-y-6 relative ${
                 plan.popular
-                  ? 'border-indigo-500/60 bg-gradient-to-b from-indigo-950/40 to-slate-900 shadow-2xl shadow-indigo-500/10'
+                  ? 'border-indigo-500/60 bg-gradient-to-b from-indigo-950 to-slate-900 text-white shadow-2xl shadow-indigo-500/10'
                   : 'border-border'
               }`}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 px-3 py-0.5 text-[10px] font-bold text-foreground uppercase tracking-wider shadow-md">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-800 px-3 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider shadow-md">
                   Recommandé
                 </div>
               )}
 
               <div>
-                <h3 className="font-heading text-lg font-bold text-foreground mb-1">{plan.name}</h3>
+                <h3 className={`font-heading text-lg font-bold mb-1 ${plan.popular ? 'text-white' : 'text-foreground'}`}>{plan.name}</h3>
                 <div className="flex items-baseline gap-1 my-3">
-                  <span className="font-heading text-3xl font-extrabold text-foreground">{plan.price}</span>
-                  <span className="text-xs text-muted-foreground">{plan.period}</span>
+                  <span className={`font-heading text-3xl font-extrabold ${plan.popular ? 'text-white' : 'text-foreground'}`}>{plan.price}</span>
+                  <span className={`text-xs ${plan.popular ? 'text-white/80' : 'text-muted-foreground'}`}>{plan.period}</span>
                 </div>
-                <p className="text-xs text-muted-foreground min-h-[36px]">{plan.description}</p>
+                <p className={`text-xs min-h-[36px] ${plan.popular ? 'text-white/85' : 'text-muted-foreground'}`}>{plan.description}</p>
 
                 <ul className="mt-6 space-y-2.5">
                   {plan.features.map((feat, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <li key={idx} className={`flex items-start gap-2 text-xs ${plan.popular ? 'text-white/85' : 'text-muted-foreground'}`}>
                       <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                       <span>{feat}</span>
                     </li>
@@ -295,7 +296,7 @@ export default function ProfilePage() {
       <div className="space-y-6">
         <div>
           <h2 className="font-heading text-2xl font-extrabold text-foreground">Contact & Équipe</h2>
-          <p className="text-xs text-muted-foreground mt-1">N'hésitez pas à nous contacter pour toute question ou suggestion.</p>
+          <p className="text-xs text-muted-foreground mt-1">N&apos;hésitez pas à nous contacter pour toute question ou suggestion.</p>
         </div>
 
         <div className="glass-card rounded-3xl p-6 border border-border grid grid-cols-1 md:grid-cols-2 gap-6 items-center">

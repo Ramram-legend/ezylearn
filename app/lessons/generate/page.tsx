@@ -265,10 +265,10 @@ export default function GenerateLessonPage() {
 
           <div>
             <h2 className="text-2xl font-extrabold text-foreground">
-              Génération de <span className="text-brand-blue">"{topic}"</span>
+              Génération de <span className="text-brand-blue">&quot;{topic}&quot;</span>
             </h2>
             <p className="mt-3 text-base text-muted-foreground">
-              L'intelligence artificielle prépare ton cours sur-mesure...
+              L&apos;intelligence artificielle prépare ton cours sur-mesure...
             </p>
           </div>
 

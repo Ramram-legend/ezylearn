@@ -8,6 +8,7 @@ import {
   Target, CheckCircle2, Star, Zap, Calendar, Trophy, BarChart2
 } from 'lucide-react';
 import type { UserStats, Badge, Lesson } from '@/types/database';
+import { PlatformIcon } from '@/components/PlatformIcon';
 
 interface ProgressData {
   stats: UserStats;
@@ -18,12 +19,12 @@ interface ProgressData {
 
 function XpLevelInfo(xp: number) {
   const levels = [
-    { min: 0, max: 200, label: 'Débutant', icon: '🌱', color: 'text-brand-green' },
-    { min: 200, max: 500, label: 'Apprenti', icon: '📘', color: 'text-brand-blue' },
-    { min: 500, max: 1000, label: 'Explorateur', icon: '🔭', color: 'text-purple-500' },
-    { min: 1000, max: 2000, label: 'Érudit', icon: '🧠', color: 'text-brand-yellow' },
-    { min: 2000, max: 5000, label: 'Savant', icon: '⚡', color: 'text-orange-500' },
-    { min: 5000, max: Infinity, label: 'Maître', icon: '🏆', color: 'text-brand-yellow' },
+    { min: 0, max: 200, label: 'Débutant', icon: 'beginner', color: 'text-brand-green' },
+    { min: 200, max: 500, label: 'Apprenti', icon: 'apprentice', color: 'text-brand-blue' },
+    { min: 500, max: 1000, label: 'Explorateur', icon: 'explorer', color: 'text-purple-500' },
+    { min: 1000, max: 2000, label: 'Érudit', icon: 'scholar', color: 'text-brand-yellow' },
+    { min: 2000, max: 5000, label: 'Savant', icon: 'savant', color: 'text-orange-500' },
+    { min: 5000, max: Infinity, label: 'Maître', icon: 'master', color: 'text-brand-yellow' },
   ];
   const level = levels.find((l) => xp >= l.min && xp < l.max) || levels[0];
   const progress = level.max === Infinity ? 100 : Math.round(((xp - level.min) / (level.max - level.min)) * 100);
@@ -114,8 +115,8 @@ export default function ProgressPage() {
       <div className="card p-6 sm:p-8 bg-gradient-to-br from-brand-blue/10 via-purple-500/5 to-brand-blue/5 border-brand-blue/20 space-y-5">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-blue/10 border border-brand-blue/20 text-3xl">
-              {levelInfo.icon}
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-blue/10 border border-brand-blue/20">
+              <PlatformIcon name={levelInfo.icon} className={`h-8 w-8 ${levelInfo.color}`} />
             </div>
             <div>
               <span className="text-xs font-bold text-brand-blue uppercase tracking-wider">Niveau actuel</span>
@@ -220,7 +221,7 @@ export default function ProgressPage() {
         <div className="flex items-center gap-3 pt-2 border-t border-border text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <div className="h-2.5 w-2.5 rounded-sm bg-gradient-to-t from-brand-blue to-purple-500" />
-            <span>Aujourd'hui</span>
+            <span>Aujourd&apos;hui</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="h-2.5 w-2.5 rounded-sm bg-brand-blue/40" />
@@ -248,7 +249,7 @@ export default function ProgressPage() {
         {badges.length === 0 ? (
           <div className="text-center py-8 space-y-2">
             <Award className="h-10 w-10 mx-auto text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">Aucun badge encore. Continue d'apprendre !</p>
+            <p className="text-sm text-muted-foreground">Aucun badge encore. Continue d&apos;apprendre !</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -257,7 +258,7 @@ export default function ProgressPage() {
                 key={badge.id}
                 className="flex items-center gap-3 p-3.5 rounded-xl border border-brand-yellow/20 bg-brand-yellow/5 hover:bg-brand-yellow/10 transition-colors"
               >
-                <span className="text-2xl">{badge.icon}</span>
+                <PlatformIcon name={badge.code} className="h-6 w-6 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-foreground truncate">{badge.label}</p>
                   <p className="text-[10px] text-muted-foreground">
@@ -313,7 +314,8 @@ export default function ProgressPage() {
           <div>
             <p className="text-xs font-bold text-brand-yellow uppercase tracking-wider">Record personnel</p>
             <p className="text-xl font-extrabold text-foreground">
-              {stats.longest_streak} jours de série consécutifs 🔥
+              {stats.longest_streak} jours de série consécutifs
+              <Flame className="ml-1 inline h-5 w-5 text-brand-yellow" />
             </p>
           </div>
         </div>

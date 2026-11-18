@@ -7,14 +7,15 @@ import type { PublicQuizQuestion } from '@/types/database';
  * Recupere une lecon deja generee (ex : pour la reafficher, ou avant de
  * lancer son quiz). Les bonnes reponses du quiz ne sont jamais incluses ici.
  */
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await getAuthContext();
   if (!auth) return unauthorizedResponse();
 
+  const { id } = await params;
   const { data: lesson, error } = await auth.supabase
     .from('lessons')
     .select('id, topic, subject, level, content, quiz, created_at')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', auth.userId)
     .maybeSingle();
 

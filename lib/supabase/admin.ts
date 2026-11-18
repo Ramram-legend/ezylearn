@@ -5,12 +5,8 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
  * policies RLS. A n'utiliser QUE dans du code serveur de confiance (jamais
  * expose au client, jamais importe dans un composant React).
  *
- * Dans ce backend, les policies RLS sont concues pour que la quasi-totalite
- * des operations passent par le client "utilisateur" standard
- * (lib/supabase/server.ts). Ce client admin est fourni pour les futures
- * taches d'administration (ex: tableau de bord etablissement, taches cron
- * de maintenance des streaks) qui doivent agir en dehors du contexte d'un
- * utilisateur precis.
+ * Les routes serveur peuvent l'utiliser pour les mutations autorisées après
+ * avoir vérifié l'identité et limité chaque opération à l'utilisateur concerné.
  */
 export function createAdminClient() {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {

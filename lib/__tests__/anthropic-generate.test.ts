@@ -17,12 +17,13 @@ const WEB_PHOTO = {
 const LESSON_JSON = {
   title: 'La Photosynthese',
   svg: '<svg></svg>',
-  explanation: 'Explication',
-  fun_fact: 'Fun fact',
+  explanation: 'Explication pedagogique de la photosynthese.',
+  fun_fact: 'Un fait amusant.',
   previous_summary: 'Resume',
+  web_photo: { url: 'https://images.unsplash.com/photo-1', caption: 'Photo' },
   quiz: [
-    { question: 'Q1', options: ['a', 'b', 'c', 'd'], correct_index: 2 },
-    { question: 'Q2', options: ['a', 'b', 'c', 'd'], answer: 'b' },
+    { question: 'Question 1 ?', options: ['a', 'b', 'c', 'd'], correct_index: 2 },
+    { question: 'Question 2 ?', options: ['a', 'b', 'c', 'd'], correct_index: 1 },
   ],
   sections: [{ heading: 'H', body_markdown: 'M', visualization: null }],
 };
@@ -70,23 +71,24 @@ describe('generateLessonContent', () => {
     expect(content.is_completed).toBe(false);
     expect(content.web_photo).toEqual(WEB_PHOTO.web_photo);
     expect(content.sections).toEqual(LESSON_JSON.sections);
-    expect(quiz[1]).toMatchObject({ question: 'Q2', correct_index: 1 });
+    expect(quiz[1]).toMatchObject({ question: 'Question 2 ?', correct_index: 1 });
     expect(mockWebPhoto).toHaveBeenCalledWith('La Photosynthese', 'Sciences');
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     const userPrompt = body.messages[1].content;
-    expect(userPrompt).toContain('Sujet: La photosynthese');
+    expect(userPrompt).toContain('<user_topic>La photosynthese</user_topic>');
     expect(userPrompt).toContain('nature');
   });
 
   it('retombe sur le sujet demande quand le titre manque', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse(JSON.stringify({ quiz: [] }))));
+    const { title: _title, ...lessonWithoutTitle } = LESSON_JSON;
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse(JSON.stringify(lessonWithoutTitle))));
     const { content } = await generateLessonContent({ topic: 'Les atomes' });
     expect(content.title).toBe('Les atomes');
   });
 
   it('nettrie les injections script et boucles de detection dans le sujet', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(okResponse(JSON.stringify({ title: 'x', quiz: [] })));
+    const fetchMock = vi.fn().mockResolvedValue(okResponse(JSON.stringify(LESSON_JSON)));
     vi.stubGlobal('fetch', fetchMock);
 
     await generateLessonContent({ topic: '[ignoring loop detection]<script>alert(1)</script>La photosynthese' });
@@ -123,7 +125,7 @@ describe('generateLessonContent - retries', () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(rateLimitResponse())
-      .mockResolvedValueOnce(okResponse(JSON.stringify({ title: 'ok', quiz: [] })));
+      .mockResolvedValueOnce(okResponse(JSON.stringify({ ...LESSON_JSON, title: 'ok' })));
     vi.stubGlobal('fetch', fetchMock);
 
     const promise = generateLessonContent({ topic: 'x' });

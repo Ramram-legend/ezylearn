@@ -10,9 +10,11 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { LanguageProvider } from '@/hooks/useLanguage';
 
 export const metadata: Metadata = {
-  title: 'EasyLearn — Plateforme d\'apprentissage adaptatif par IA',
-  description: 'Générez des leçons interactives sur-mesure avec schémas animés SVG, explications adaptées à votre âge et quiz personnalisés.',
-  keywords: ['éducation', 'IA', 'apprentissage adaptatif', 'leçons', 'quiz', 'gamification', 'claude', 'supabase'],
+  metadataBase: new URL('https://www.ezylearn.world'),
+  applicationName: 'EasyLearn',
+  title: 'EasyLearn | Leçons interactives et quiz personnalisés par IA',
+  description: 'Apprenez chaque sujet avec des leçons interactives créées par l’IA, des explications adaptées à votre âge et des quiz personnalisés. Commencez gratuitement sur EasyLearn.',
+  keywords: ['apprentissage en ligne', 'leçons interactives', 'apprendre avec l’IA', 'quiz éducatifs', 'apprentissage adaptatif'],
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -20,10 +22,16 @@ export const metadata: Metadata = {
     title: 'EasyLearn',
   },
   openGraph: {
-    title: 'EasyLearn — Apprendre autrement avec l\'IA',
-    description: 'Des leçons personnalisées générées par IA, adaptées à chaque apprenant.',
+    title: 'EasyLearn | Leçons interactives et quiz personnalisés par IA',
+    description: 'Apprenez chaque sujet avec des leçons interactives créées par l’IA, des explications adaptées à votre âge et des quiz personnalisés.',
     type: 'website',
     locale: 'fr_FR',
+    siteName: 'EasyLearn',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'EasyLearn | Leçons interactives et quiz personnalisés par IA',
+    description: 'Des leçons interactives créées par l’IA, adaptées à votre âge, avec quiz personnalisés.',
   },
 };
 

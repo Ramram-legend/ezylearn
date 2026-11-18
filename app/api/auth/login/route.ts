@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   }
 
   const { email, display_name } = parsed.data;
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Prefer the explicitly set site URL (from Vercel env vars) to avoid
   // magic links pointing to localhost when running behind Vercel's edge.

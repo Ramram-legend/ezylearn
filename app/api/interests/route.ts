@@ -8,7 +8,7 @@ import { errorResponse } from '@/lib/api-utils';
  * d'onboarding "Tes centres d'interet"). Public, pas d'authentification requise.
  */
 export async function GET() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('interest_catalog')

@@ -11,7 +11,7 @@ export async function getAuthContext(): Promise<{
   supabase: SupabaseClient;
   userId: string;
 } | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
     error,

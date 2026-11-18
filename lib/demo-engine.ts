@@ -6,18 +6,18 @@
 import type { Profile, UserStats, Badge, Lesson, QuizQuestion } from '@/types/database';
 
 export const CATALOG_INTERESTS = [
-  { id: 'gaming', label: 'Jeux Vidéo', icon: '🎮', sort_order: 1 },
-  { id: 'space', label: 'Espace & Cosmos', icon: '🚀', sort_order: 2 },
-  { id: 'coding', label: 'Programmation', icon: '💻', sort_order: 3 },
-  { id: 'biology', label: 'Animaux & Nature', icon: '🌿', sort_order: 4 },
-  { id: 'art', label: 'Dessin & Art', icon: '🎨', sort_order: 5 },
-  { id: 'music', label: 'Musique', icon: '🎵', sort_order: 6 },
-  { id: 'history', label: 'Histoire & Légendes', icon: '📜', sort_order: 7 },
-  { id: 'sports', label: 'Sports & Athlétisme', icon: '⚽', sort_order: 8 },
-  { id: 'robotics', label: 'Robots & IA', icon: '🤖', sort_order: 9 },
-  { id: 'cinema', label: 'Cinéma & Manga', icon: '🎬', sort_order: 10 },
-  { id: 'chemistry', label: 'Expériences & Chimie', icon: '🧪', sort_order: 11 },
-  { id: 'environment', label: 'Écologie & Planète', icon: '🌍', sort_order: 12 },
+  { id: 'gaming', label: 'Jeux Vidéo', icon: 'gaming', sort_order: 1 },
+  { id: 'space', label: 'Espace & Cosmos', icon: 'space', sort_order: 2 },
+  { id: 'coding', label: 'Programmation', icon: 'coding', sort_order: 3 },
+  { id: 'biology', label: 'Animaux & Nature', icon: 'biology', sort_order: 4 },
+  { id: 'art', label: 'Dessin & Art', icon: 'art', sort_order: 5 },
+  { id: 'music', label: 'Musique', icon: 'music', sort_order: 6 },
+  { id: 'history', label: 'Histoire & Légendes', icon: 'history', sort_order: 7 },
+  { id: 'sports', label: 'Sports & Athlétisme', icon: 'sports', sort_order: 8 },
+  { id: 'robotics', label: 'Robots & IA', icon: 'robotics', sort_order: 9 },
+  { id: 'cinema', label: 'Cinéma & Manga', icon: 'cinema', sort_order: 10 },
+  { id: 'chemistry', label: 'Expériences & Chimie', icon: 'chemistry', sort_order: 11 },
+  { id: 'environment', label: 'Écologie & Planète', icon: 'environment', sort_order: 12 },
 ];
 
 export const INITIAL_BADGES: Badge[] = [
@@ -25,7 +25,7 @@ export const INITIAL_BADGES: Badge[] = [
     id: 'badge-1',
     code: 'first_lesson',
     label: 'Première Étincelle',
-    icon: '📖',
+    icon: 'first_lesson',
     description: 'Complète ta toute première leçon sur EasyLearn.',
     condition_type: 'lessons_count',
     condition_value: 1,
@@ -34,7 +34,7 @@ export const INITIAL_BADGES: Badge[] = [
     id: 'badge-2',
     code: 'streak_3',
     label: 'Flamme d\'Apprentissage',
-    icon: '🔥',
+    icon: 'streak_3',
     description: 'Maintiens une série active pendant 3 jours consécutifs.',
     condition_type: 'streak',
     condition_value: 3,
@@ -43,7 +43,7 @@ export const INITIAL_BADGES: Badge[] = [
     id: 'badge-3',
     code: 'perfect_quiz',
     label: 'Master du Quiz',
-    icon: '🎯',
+    icon: 'perfect_quiz',
     description: 'Obtiens un score parfait de 3/3 à un quiz.',
     condition_type: 'perfect_score',
     condition_value: 1,
@@ -52,7 +52,7 @@ export const INITIAL_BADGES: Badge[] = [
     id: 'badge-4',
     code: 'lessons_5',
     label: 'Explorateur du Savoir',
-    icon: '🚀',
+    icon: 'lessons_5',
     description: 'Complète au moins 5 leçons personnalisées.',
     condition_type: 'lessons_count',
     condition_value: 5,
@@ -61,7 +61,7 @@ export const INITIAL_BADGES: Badge[] = [
     id: 'badge-5',
     code: 'streak_7',
     label: 'Inarrêtable',
-    icon: '⚡',
+    icon: 'streak_7',
     description: 'Atteins 7 jours de série quotidienne d\'apprentissage.',
     condition_type: 'streak',
     condition_value: 7,
@@ -70,7 +70,7 @@ export const INITIAL_BADGES: Badge[] = [
     id: 'badge-6',
     code: 'lessons_10',
     label: 'Savant Érudit',
-    icon: '👑',
+    icon: 'lessons_10',
     description: 'Complète 10 leçons dans ton parcours adaptatif.',
     condition_type: 'lessons_count',
     condition_value: 10,
@@ -276,7 +276,7 @@ export function generateDemoSvg(topic: string, subject: string): string {
   <rect x="220" y="205" width="140" height="30" rx="8" fill="rgba(15,23,42,0.8)" stroke="#38bdf8" stroke-width="1.5"/>
   <text x="290" y="225" text-anchor="middle" fill="#38bdf8" font-family="Inter, sans-serif" font-size="12" font-weight="700">v = d / t (Vitesse)</text>
 
-  <text x="290" y="40" text-anchor="middle" fill="#f8fafc" font-family="Outfit, sans-serif" font-size="16" font-weight="800">⚡ ${escapeXml(topic)}</text>
+  <text x="290" y="40" text-anchor="middle" fill="#f8fafc" font-family="Outfit, sans-serif" font-size="16" font-weight="800">${escapeXml(topic)}</text>
 </svg>`;
   }
 
@@ -320,7 +320,7 @@ export function generateDemoSvg(topic: string, subject: string): string {
     <circle cx="150" cy="135" r="18" fill="#ec4899"/>
     <ellipse cx="150" cy="135" rx="26" ry="6" stroke="#f472b6" stroke-width="2" fill="none"/>
   </g>
-  <text x="290" y="245" text-anchor="middle" fill="#f8fafc" font-family="Inter, sans-serif" font-size="14" font-weight="600">🚀 Exploration Cosmique — ${escapeXml(topic)}</text>
+  <text x="290" y="245" text-anchor="middle" fill="#f8fafc" font-family="Inter, sans-serif" font-size="14" font-weight="600">Exploration Cosmique — ${escapeXml(topic)}</text>
 </svg>`;
   }
 
@@ -357,12 +357,12 @@ export function generateDemoSvg(topic: string, subject: string): string {
   </g>
 
   <rect x="50" y="190" width="130" height="32" rx="8" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)"/>
-  <text x="115" y="211" text-anchor="middle" fill="#fef08a" font-family="Inter, sans-serif" font-size="12" font-weight="600">☀️ Énergie Solaire</text>
+  <text x="115" y="211" text-anchor="middle" fill="#fef08a" font-family="Inter, sans-serif" font-size="12" font-weight="600">Énergie Solaire</text>
 
   <rect x="420" y="220" width="130" height="32" rx="8" fill="rgba(16,185,129,0.2)" stroke="#34d399"/>
-  <text x="485" y="241" text-anchor="middle" fill="#34d399" font-family="Inter, sans-serif" font-size="12" font-weight="600">🌿 Glucose + O₂</text>
+  <text x="485" y="241" text-anchor="middle" fill="#34d399" font-family="Inter, sans-serif" font-size="12" font-weight="600">Glucose + O₂</text>
 
-  <text x="290" y="255" text-anchor="middle" fill="#f8fafc" font-family="Inter, sans-serif" font-size="13" font-weight="600">🌿 Schéma Biologique — ${escapeXml(topic)}</text>
+  <text x="290" y="255" text-anchor="middle" fill="#f8fafc" font-family="Inter, sans-serif" font-size="13" font-weight="600">Schéma Biologique — ${escapeXml(topic)}</text>
 </svg>`;
   }
 
@@ -418,7 +418,7 @@ export function generateDemoSvg(topic: string, subject: string): string {
 
   <text x="50" y="208" fill="#64748b" font-family="monospace" font-size="12">05  </text>
   <text x="80" y="208" fill="#4ade80" font-family="monospace" font-size="12">    return</text>
-  <text x="130" y="208" fill="#f472b6" font-family="monospace" font-size="12"> "Succès ✓"</text>
+  <text x="130" y="208" fill="#f472b6" font-family="monospace" font-size="12"> "Succès"</text>
 
   <text x="50" y="240" fill="#4ade80" font-family="monospace" font-size="13">&gt;&gt; OUTPUT: Apprentissage OK <tspan class="cursor" fill="#fff">_</tspan></text>
 
@@ -439,7 +439,7 @@ export function generateDemoSvg(topic: string, subject: string): string {
   <!-- INPUT -->
   <g class="step-node" tabindex="0" role="button" aria-label="Entrée données">
     <rect x="425" y="150" width="130" height="36" rx="6" fill="#0e7490" stroke="#22d3ee" stroke-width="2"/>
-    <text x="490" y="172" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="11" font-weight="700">📥 ENTRÉE</text>
+    <text x="490" y="172" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="11" font-weight="700">ENTRÉE</text>
     <rect class="code-tooltip" x="340" y="155" width="80" height="26" rx="5" fill="#1e293b" stroke="#22d3ee"/>
     <text class="code-tooltip" x="380" y="172" text-anchor="middle" fill="#67e8f9" font-family="Inter, sans-serif" font-size="9">Données à traiter</text>
   </g>
@@ -450,7 +450,7 @@ export function generateDemoSvg(topic: string, subject: string): string {
   <!-- PROCESS -->
   <g class="step-node" tabindex="0" role="button" aria-label="Traitement algorithme">
     <rect x="418" y="210" width="144" height="36" rx="6" fill="#7c3aed" stroke="#a78bfa" stroke-width="2"/>
-    <text x="490" y="232" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="11" font-weight="700">⚙️ TRAITEMENT</text>
+    <text x="490" y="232" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="11" font-weight="700">TRAITEMENT</text>
     <rect class="code-tooltip" x="335" y="215" width="78" height="26" rx="5" fill="#1e293b" stroke="#7c3aed"/>
     <text class="code-tooltip" x="374" y="232" text-anchor="middle" fill="#c4b5fd" font-family="Inter, sans-serif" font-size="9">Algo s'exécute ici</text>
   </g>
@@ -461,12 +461,12 @@ export function generateDemoSvg(topic: string, subject: string): string {
   <!-- OUTPUT -->
   <g class="step-node" tabindex="0" role="button" aria-label="Résultat de sortie">
     <rect x="425" y="270" width="130" height="36" rx="6" fill="#065f46" stroke="#4ade80" stroke-width="2"/>
-    <text x="490" y="292" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="11" font-weight="700">📤 RÉSULTAT</text>
+    <text x="490" y="292" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="11" font-weight="700">RÉSULTAT</text>
     <rect class="code-tooltip" x="340" y="275" width="80" height="26" rx="5" fill="#1e293b" stroke="#4ade80"/>
     <text class="code-tooltip" x="380" y="292" text-anchor="middle" fill="#86efac" font-family="Inter, sans-serif" font-size="9">Affichage du résultat</text>
   </g>
 
-  <text x="320" y="350" text-anchor="middle" fill="#475569" font-family="Inter, sans-serif" font-size="10">👆 Clique sur chaque étape du flowchart pour comprendre son rôle</text>
+  <text x="320" y="350" text-anchor="middle" fill="#475569" font-family="Inter, sans-serif" font-size="10">Cliquez sur chaque étape du flowchart pour comprendre son rôle</text>
   <script type="text/javascript">
     (function() {
       document.querySelectorAll('.step-node').forEach(function(el) {
@@ -517,7 +517,7 @@ export function generateDemoSvg(topic: string, subject: string): string {
   <!-- Node 1 — Observation -->
   <g class="gen-node" tabindex="0" role="button" aria-label="Étape 1 Observation">
     <circle cx="180" cy="130" r="40" fill="#1d4ed8" stroke="#60a5fa" stroke-width="3"/>
-    <text x="180" y="125" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="18">🔍</text>
+    <text x="180" y="125" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="18">1</text>
     <text x="180" y="142" text-anchor="middle" fill="#bfdbfe" font-family="Inter, sans-serif" font-size="10" font-weight="700">Observation</text>
     <rect class="gen-tooltip" x="30" y="85" width="130" height="44" rx="7" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5"/>
     <text class="gen-tooltip" x="95" y="104" text-anchor="middle" fill="#93c5fd" font-family="Inter, sans-serif" font-size="10" font-weight="700">1 — Observer</text>
@@ -528,7 +528,7 @@ export function generateDemoSvg(topic: string, subject: string): string {
   <!-- Node 2 — Hypothèse -->
   <g class="gen-node" tabindex="0" role="button" aria-label="Étape 2 Hypothèse">
     <circle cx="390" cy="130" r="40" fill="#7c3aed" stroke="#a78bfa" stroke-width="3"/>
-    <text x="390" y="125" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="18">💡</text>
+    <text x="390" y="125" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="18">2</text>
     <text x="390" y="142" text-anchor="middle" fill="#ddd6fe" font-family="Inter, sans-serif" font-size="10" font-weight="700">Hypothèse</text>
     <rect class="gen-tooltip" x="435" y="85" width="140" height="44" rx="7" fill="#1e293b" stroke="#7c3aed" stroke-width="1.5"/>
     <text class="gen-tooltip" x="505" y="104" text-anchor="middle" fill="#c4b5fd" font-family="Inter, sans-serif" font-size="10" font-weight="700">2 — Formuler</text>
@@ -539,7 +539,7 @@ export function generateDemoSvg(topic: string, subject: string): string {
   <!-- Node 3 — Expérimentation -->
   <g class="gen-node" tabindex="0" role="button" aria-label="Étape 3 Expérimentation">
     <circle cx="440" cy="255" r="40" fill="#0e7490" stroke="#22d3ee" stroke-width="3"/>
-    <text x="440" y="250" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="18">⚗️</text>
+    <text x="440" y="250" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="18">3</text>
     <text x="440" y="268" text-anchor="middle" fill="#a5f3fc" font-family="Inter, sans-serif" font-size="9" font-weight="700">Expériment.</text>
     <rect class="gen-tooltip" x="485" y="218" width="140" height="44" rx="7" fill="#1e293b" stroke="#0e7490" stroke-width="1.5"/>
     <text class="gen-tooltip" x="555" y="237" text-anchor="middle" fill="#67e8f9" font-family="Inter, sans-serif" font-size="10" font-weight="700">3 — Tester</text>
@@ -550,7 +550,7 @@ export function generateDemoSvg(topic: string, subject: string): string {
   <!-- Node 4 — Conclusion -->
   <g class="gen-node" tabindex="0" role="button" aria-label="Étape 4 Conclusion">
     <circle cx="190" cy="255" r="40" fill="#065f46" stroke="#4ade80" stroke-width="3"/>
-    <text x="190" y="250" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="18">✅</text>
+    <text x="190" y="250" text-anchor="middle" fill="#fff" font-family="Inter, sans-serif" font-size="18">4</text>
     <text x="190" y="268" text-anchor="middle" fill="#86efac" font-family="Inter, sans-serif" font-size="10" font-weight="700">Conclusion</text>
     <rect class="gen-tooltip" x="20" y="218" width="145" height="44" rx="7" fill="#1e293b" stroke="#065f46" stroke-width="1.5"/>
     <text class="gen-tooltip" x="92" y="237" text-anchor="middle" fill="#4ade80" font-family="Inter, sans-serif" font-size="10" font-weight="700">4 — Conclure</text>
@@ -562,7 +562,7 @@ export function generateDemoSvg(topic: string, subject: string): string {
   <text x="310" y="192" text-anchor="middle" fill="#e2e8f0" font-family="Outfit, sans-serif" font-size="13" font-weight="700">Méthode</text>
   <text x="310" y="210" text-anchor="middle" fill="#818cf8" font-family="Inter, sans-serif" font-size="11">Scientifique</text>
 
-  <text x="320" y="350" text-anchor="middle" fill="#475569" font-family="Inter, sans-serif" font-size="10">👆 Clique sur chaque étape pour en apprendre plus</text>
+  <text x="320" y="350" text-anchor="middle" fill="#475569" font-family="Inter, sans-serif" font-size="10">Cliquez sur chaque étape pour en apprendre plus</text>
 </svg>`;
 }
 
@@ -595,7 +595,7 @@ function generateChemSvg(topic: string): string {
     .gen-node { cursor: pointer; }
   </style>
   <rect width="640" height="360" rx="18" fill="url(#chemBg)"/>
-  <text x="320" y="34" text-anchor="middle" fill="#f8fafc" font-family="Outfit, sans-serif" font-size="18" font-weight="800">⚡ ${t}</text>
+  <text x="320" y="34" text-anchor="middle" fill="#f8fafc" font-family="Outfit, sans-serif" font-size="18" font-weight="800">${escapeXml(t)}</text>
   <text x="320" y="56" text-anchor="middle" fill="#94a3b8" font-family="Inter, sans-serif" font-size="11">Schéma d'une cellule électrochimique</text>
   <rect x="200" y="100" width="240" height="160" rx="16" fill="#1c1917" stroke="#22d3ee" stroke-width="3"/>
   <line x1="320" y1="110" x2="320" y2="250" stroke="#475569" stroke-width="3" stroke-dasharray="6,4"/>
@@ -839,14 +839,14 @@ export function continueDemoLesson(parentLesson: Lesson): Lesson {
   </g>
   <g class="pulse-node" style="animation-delay: 0.5s;" id="n2-${nextChapter}">
     <circle cx="250" cy="120" r="34" fill="#6366f1" stroke="#818cf8" stroke-width="3"/>
-    <text x="250" y="125" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="18">⚡</text>
+    <text x="250" y="125" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="18">XP</text>
   </g>
   <g class="pulse-node" style="animation-delay: 1s;" id="n3-${nextChapter}">
     <circle cx="420" cy="120" r="28" fill="#ec4899" stroke="#f472b6" stroke-width="3"/>
     <text x="420" y="125" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="bold">Mastery</text>
   </g>
   <text x="250" y="35" text-anchor="middle" fill="#f8fafc" font-family="sans-serif" font-size="14" font-weight="bold">${escapeXml(topic)} — Chapitre ${nextChapter}</text>
-  <text x="250" y="215" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="11">💡 Cliquez sur les composants pour voir l'effet dynamique</text>
+  <text x="250" y="215" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="11">Cliquez sur les composants pour voir l'effet dynamique</text>
 </svg>
 <script>
   document.querySelectorAll('.pulse-node').forEach(function(node) {
@@ -870,7 +870,7 @@ export function continueDemoLesson(parentLesson: Lesson): Lesson {
   <rect width="500" height="240" rx="12" fill="url(#vizGrad${nextChapter}B)"/>
   <circle cx="250" cy="120" r="55" fill="none" stroke="#10b981" stroke-width="6" stroke-dasharray="14,8" class="gear"/>
   <circle cx="250" cy="120" r="30" fill="#059669" stroke="#34d399" stroke-width="3"/>
-  <text x="250" y="125" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="14" font-weight="bold">⚙️ ${nextChapter}/${totalChapters}</text>
+  <text x="250" y="125" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="14" font-weight="bold">${nextChapter}/${totalChapters}</text>
   <text x="250" y="35" text-anchor="middle" fill="#34d399" font-family="sans-serif" font-size="14" font-weight="bold">Moteur Pédagogique — ${escapeXml(mainInterest)}</text>
 </svg>`;
 

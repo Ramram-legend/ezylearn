@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getAuthContext, errorResponse } from '@/lib/api-utils';
 import { generateLessonContinuation } from '@/lib/ai';
 import type { PublicQuizQuestion } from '@/types/database';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const continueSchema = z.object({
   lessonId: z.string().min(1, 'ID de la leçon requis.'),
@@ -105,7 +106,8 @@ export async function POST(request: Request) {
   // 3. Sauvegarder le nouveau chapitre
   let lessonData;
   if (auth) {
-    const { data: lesson, error: insertError } = await auth.supabase
+    const admin = createAdminClient();
+    const { data: lesson, error: insertError } = await admin
       .from('lessons')
       .insert({
         user_id: auth.userId,

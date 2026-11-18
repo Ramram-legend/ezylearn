@@ -1,17 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '@/app/api/lessons/generate/route';
 import { getAuthContext } from '@/lib/api-utils';
-import { generateLessonContent } from '@/lib/anthropic';
+import { generateLessonContent } from '@/lib/ai';
 import * as credits from '@/lib/credits';
 import { FakeStore } from '@/test/utils/supabase-mock';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 vi.mock('@/lib/api-utils', async (importOriginal) => {
   const mod = await importOriginal<typeof import('@/lib/api-utils')>();
   return { ...mod, getAuthContext: vi.fn() };
 });
 
-vi.mock('@/lib/anthropic', () => ({
+vi.mock('@/lib/ai', () => ({
   generateLessonContent: vi.fn(),
+}));
+
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(),
 }));
 
 vi.mock('@/lib/credits', async (importOriginal) => {
@@ -57,6 +62,7 @@ describe('POST /api/lessons/generate', () => {
     vi.mocked(generateLessonContent).mockReset();
     vi.mocked(credits.checkGenerationRights).mockReset();
     vi.mocked(credits.consumeGenerationCredit).mockReset();
+    vi.mocked(createAdminClient).mockReset();
   });
 
   it('fonctionne en mode invite sans sauvegarder en base', async () => {
@@ -79,6 +85,7 @@ describe('POST /api/lessons/generate', () => {
   it('sauvegarde la lecon et consomme le credit pour un utilisateur connecte', async () => {
     const store = new FakeStore({ lessons: [], user_daily_usage: [], user_credits: [] });
     vi.mocked(getAuthContext).mockResolvedValue({ supabase: store as never, userId: USER });
+    vi.mocked(createAdminClient).mockReturnValue(store as never);
     vi.mocked(generateLessonContent).mockResolvedValue(generatedLesson);
     vi.mocked(credits.checkGenerationRights).mockResolvedValue({
       allowed: true,
