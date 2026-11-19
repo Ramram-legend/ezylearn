@@ -21,8 +21,8 @@ const LESSON_JSON = {
   fun_fact: 'Fun fact',
   previous_summary: 'Resume',
   quiz: [
-    { question: 'Q1', options: ['a', 'b', 'c', 'd'], correct_index: 2 },
-    { question: 'Q2', options: ['a', 'b', 'c', 'd'], answer: 'b' },
+    { question: 'Question 1 ?', options: ['a', 'b', 'c', 'd'], correct_index: 2 },
+    { question: 'Question 2 ?', options: ['a', 'b', 'c', 'd'], correct_index: 1 },
   ],
   sections: [{ heading: 'H', body_markdown: 'M', visualization: null }],
 };
@@ -53,7 +53,7 @@ afterEach(() => {
 
 describe('generateLessonContent', () => {
   it('genere une lecon complete a partir de la reponse DeepSeek', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(okResponse(JSON.stringify(LESSON_JSON)));
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(okResponse(JSON.stringify(LESSON_JSON))));
     vi.stubGlobal('fetch', fetchMock);
 
     const { content, quiz } = await generateLessonContent({
@@ -68,25 +68,91 @@ describe('generateLessonContent', () => {
     expect(content.chapter_index).toBe(1);
     expect(content.total_chapters).toBe(4);
     expect(content.is_completed).toBe(false);
+    expect(content.svg).toBe('<svg></svg>');
     expect(content.web_photo).toEqual(WEB_PHOTO.web_photo);
     expect(content.sections).toEqual(LESSON_JSON.sections);
-    expect(quiz[1]).toMatchObject({ question: 'Q2', correct_index: 1 });
+    expect(quiz[1]).toMatchObject({ question: 'Question 2 ?', correct_index: 1 });
     expect(mockWebPhoto).toHaveBeenCalledWith('La Photosynthese', 'Sciences');
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     const userPrompt = body.messages[1].content;
-    expect(userPrompt).toContain('Sujet: La photosynthese');
+    expect(userPrompt).toContain('<user_topic>La photosynthese</user_topic>');
     expect(userPrompt).toContain('nature');
   });
 
+  it('conserve les formes structurées valides pour le rendu interactif', async () => {
+    const animation_data = {
+      title: 'Cycle de l’eau',
+      theme: 'biology',
+      elements: [
+        { id: 'nuage', type: 'ellipse', x: 180, y: 120, rx: 55, ry: 28, color: '#60a5fa' },
+        { id: 'sol', type: 'line', x: 120, y: 280, x2: 680, y2: 280, color: '#34d399' },
+        { id: 'pluie', type: 'path', x: 320, y: 150, d: 'M 320 150 C 350 190 365 220 380 250', color: '#38bdf8' },
+      ],
+      steps: [
+        {
+          id: 'etape-1',
+          label: 'Évaporation',
+          description: 'L’eau liquide devient vapeur.',
+          highlights: ['sol'],
+          challenge: { type: 'quiz', question: 'Que devient l’eau ?', options: ['Vapeur', 'Roche'], correct: 0 },
+        },
+        { id: 'etape-2', label: 'Condensation', description: 'La vapeur forme des nuages.' },
+        {
+          id: 'etape-3',
+          label: 'Précipitations',
+          description: 'L’eau retombe vers le sol.',
+          highlights: ['pluie', 'nuage'],
+          challenge: { type: 'quiz', question: 'Où retombe la pluie ?', options: ['Au sol', 'Dans le Soleil'], correct: 0 },
+        },
+      ],
+    };
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
+      Promise.resolve(okResponse(JSON.stringify({ ...LESSON_JSON, animation_data })))
+    ));
+
+    const { content } = await generateLessonContent({ topic: 'Le cycle de l’eau' });
+
+    expect(content.animation_data?.elements.map((element) => element.type)).toEqual([
+      'ellipse',
+      'line',
+      'path',
+    ]);
+  });
+
+  it('écarte les animations invalides et remplace un SVG non autorisé par le secours', async () => {
+    const invalidAnimation = {
+      title: 'Animation incorrecte',
+      elements: [{ id: 'x', type: 'path', x: 100, y: 100, d: '<script>alert(1)</script>' }],
+      steps: [],
+    };
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
+      Promise.resolve(okResponse(JSON.stringify({
+        ...LESSON_JSON,
+        svg: '<svg><script>alert(1)</script></svg>',
+        animation_data: invalidAnimation,
+      })))
+    ));
+
+    const { content } = await generateLessonContent({ topic: 'Les atomes' });
+
+    expect(content.animation_data).toBeUndefined();
+    expect(content.svg).toContain('viewBox="0 0 800 350"');
+    expect(content.svg).not.toContain('<script>');
+  });
+
   it('retombe sur le sujet demande quand le titre manque', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse(JSON.stringify({ quiz: [] }))));
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
+      Promise.resolve(okResponse(JSON.stringify({ ...LESSON_JSON, title: undefined })))
+    ));
     const { content } = await generateLessonContent({ topic: 'Les atomes' });
     expect(content.title).toBe('Les atomes');
   });
 
   it('nettrie les injections script et boucles de detection dans le sujet', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(okResponse(JSON.stringify({ title: 'x', quiz: [] })));
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(okResponse(JSON.stringify(LESSON_JSON)))
+    );
     vi.stubGlobal('fetch', fetchMock);
 
     await generateLessonContent({ topic: '[ignoring loop detection]<script>alert(1)</script>La photosynthese' });
@@ -123,7 +189,7 @@ describe('generateLessonContent - retries', () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(rateLimitResponse())
-      .mockResolvedValueOnce(okResponse(JSON.stringify({ title: 'ok', quiz: [] })));
+      .mockResolvedValueOnce(okResponse(JSON.stringify({ ...LESSON_JSON, title: 'ok' })));
     vi.stubGlobal('fetch', fetchMock);
 
     const promise = generateLessonContent({ topic: 'x' });
@@ -160,6 +226,23 @@ describe('generateLessonContent - retries', () => {
 });
 
 describe('generateLessonContinuation', () => {
+  it('remplace un SVG de continuation invalide par un rendu de secours', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
+      Promise.resolve(okResponse(JSON.stringify({
+        ...LESSON_JSON,
+        svg: '<svg onload="alert(1)"></svg>',
+      })))
+    ));
+
+    const { content } = await generateLessonContinuation({
+      topic: 'La photosynthèse',
+      currentChapterIndex: 1,
+    });
+
+    expect(content.svg).toContain('viewBox="0 0 800 350"');
+    expect(content.svg).not.toContain('onload');
+  });
+
   it('genere le chapitre suivant et marque la fin du parcours', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse(JSON.stringify(LESSON_JSON))));
 

@@ -54,24 +54,21 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 3 — Technologie */}
+          {/* Col 3 — Créateur */}
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
-              {t('technology')}
+              {t('creator')}
             </p>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { label: 'Next.js 14', color: 'text-brand-blue' },
-                { label: 'Claude AI', color: 'text-brand-green' },
-                { label: 'Supabase', color: 'text-brand-yellow' },
-                { label: 'Vercel', color: 'text-foreground' },
-              ].map(t => (
-                <span key={t.label}
-                  className={`rounded px-2.5 py-1 font-mono text-[11px] font-semibold bg-muted border border-border ${t.color}`}>
-                  {t.label}
-                </span>
-              ))}
-            </div>
+            <p className="text-sm font-semibold text-foreground">Ilyas Ramram</p>
+            <a
+              href="https://github.com/Ramram-legend"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Profil GitHub d’Ilyas Ramram (ouvre un nouvel onglet)"
+              className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-brand-blue"
+            >
+              github.com/Ramram-legend
+            </a>
           </div>
         </div>
 

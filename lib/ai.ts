@@ -7,6 +7,10 @@ const QuizQuestionSchema = z.object({
   question: z.string().min(5),
   options: z.array(z.string()).min(2).max(6),
   correct_index: z.number().int().min(0),
+}).superRefine((question, context) => {
+  if (question.correct_index >= question.options.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['correct_index'], message: 'Réponse correcte hors limites.' });
+  }
 });
 
 const VisualizationSchema = z.object({
@@ -29,67 +33,187 @@ const WebPhotoSchema = z.object({
 }).optional();
 
 // ── Schéma animation_data (mini-jeu interactif) ────────────────────────────
+const SvgColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+
 const AnimationElementSchema = z.object({
-  id: z.string(),
-  type: z.enum(['circle', 'rect', 'arrow', 'label', 'particle']),
-  x: z.number(),
-  y: z.number(),
-  width: z.number().optional(),
-  height: z.number().optional(),
-  radius: z.number().optional(),
-  color: z.string().optional(),
-  glowColor: z.string().optional(),
-  label: z.string().optional(),
+  id: z.string().regex(/^[a-zA-Z0-9_-]{1,48}$/),
+  type: z.enum(['circle', 'rect', 'arrow', 'label', 'particle', 'ellipse', 'line', 'path']),
+  x: z.number().min(0).max(800),
+  y: z.number().min(0).max(380),
+  width: z.number().positive().max(800).optional(),
+  height: z.number().positive().max(380).optional(),
+  radius: z.number().positive().max(190).optional(),
+  rx: z.number().positive().max(400).optional(),
+  ry: z.number().positive().max(190).optional(),
+  x2: z.number().min(0).max(800).optional(),
+  y2: z.number().min(0).max(380).optional(),
+  d: z.string().max(1000).regex(/^[MmLlHhVvCcSsQqTtAaZz0-9.,+\-\seE]*$/).optional(),
+  color: SvgColorSchema.optional(),
+  fill: SvgColorSchema.optional(),
+  glowColor: SvgColorSchema.optional(),
+  strokeWidth: z.number().positive().max(16).optional(),
+  fontSize: z.number().min(8).max(36).optional(),
+  label: z.string().max(32).optional(),
   spin: z.boolean().optional(),
   pulse: z.boolean().optional(),
   float: z.boolean().optional(),
-  connectTo: z.array(z.string()).optional(),
-  visibleInSteps: z.array(z.string()).optional(),
+  connectTo: z.array(z.string()).max(1).optional(),
+  visibleInSteps: z.array(z.string()).max(6).optional(),
+}).superRefine((element, context) => {
+  if (element.type === 'path' && !element.d) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['d'], message: 'Un chemin doit définir d.' });
+  }
+  if (element.type === 'line' && (element.x2 === undefined || element.y2 === undefined)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['x2'], message: 'Une ligne doit définir son point final.' });
+  }
+  if (element.type === 'ellipse' && (element.rx === undefined || element.ry === undefined)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['rx'], message: 'Une ellipse doit définir rx et ry.' });
+  }
+});
+
+const QuizChallengeShape = z.object({
+  type: z.literal('quiz').optional(),
+  question: z.string().min(1).max(200),
+  options: z.array(z.string().min(1).max(100)).min(2).max(4),
+  correct: z.number().int().min(0),
+});
+
+const QuizChallengeSchema = QuizChallengeShape.superRefine((challenge, context) => {
+  if (challenge.correct >= challenge.options.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['correct'], message: 'Réponse correcte hors limites.' });
+  }
+});
+
+const FinalQuizSchema = QuizChallengeShape.extend({
+  explanation: z.string().min(1).max(300),
+}).superRefine((challenge, context) => {
+  if (challenge.correct >= challenge.options.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['correct'], message: 'Réponse correcte hors limites.' });
+  }
+});
+
+const DragDropChallengeSchema = z.object({
+  type: z.literal('drag-drop'),
+  instruction: z.string().min(1).max(200),
+  draggables: z.array(z.string().min(1).max(80)).min(1).max(8),
+  dropZones: z.array(z.object({
+    id: z.string().regex(/^[a-zA-Z0-9_-]{1,48}$/),
+    label: z.string().min(1).max(80),
+    expectedDraggable: z.string().min(1).max(80),
+  })).min(1).max(8),
+}).superRefine((challenge, context) => {
+  const zoneIds = new Set<string>();
+  challenge.dropZones.forEach((zone, index) => {
+    if (zoneIds.has(zone.id)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['dropZones', index, 'id'], message: 'Identifiant de zone dupliqué.' });
+    }
+    zoneIds.add(zone.id);
+    if (!challenge.draggables.includes(zone.expectedDraggable)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['dropZones', index, 'expectedDraggable'], message: 'Élément attendu absent des éléments à déplacer.' });
+    }
+  });
 });
 
 const AnimationStepSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  description: z.string(),
-  color: z.string().optional(),
-  highlights: z.array(z.string()).optional(),
-  challenge: z.union([
-    z.object({
-      type: z.literal('quiz').optional(),
-      question: z.string(),
-      options: z.array(z.string()).min(2).max(4),
-      correct: z.number().int().min(0),
-    }),
-    z.object({
-      type: z.literal('drag-drop'),
-      instruction: z.string(),
-      draggables: z.array(z.string()).min(1),
-      dropZones: z.array(z.object({
-        id: z.string(),
-        label: z.string(),
-        expectedDraggable: z.string(),
-      })).min(1),
-    })
-  ]).optional(),
+  id: z.string().regex(/^[a-zA-Z0-9_-]{1,48}$/),
+  label: z.string().min(1).max(80),
+  description: z.string().min(1).max(500),
+  color: SvgColorSchema.optional(),
+  highlights: z.array(z.string()).max(32).optional(),
+  challenge: z.union([QuizChallengeSchema, DragDropChallengeSchema]).optional(),
 });
 
 const AnimationDataSchema = z.object({
-  title: z.string(),
+  title: z.string().min(2).max(100),
   theme: z.enum(['space', 'biology', 'chemistry', 'physics', 'tech', 'default']).optional(),
-  elements: z.array(AnimationElementSchema),
-  steps: z.array(AnimationStepSchema),
-  finalQuiz: z.object({
-    question: z.string(),
-    options: z.array(z.string()).min(2).max(4),
-    correct: z.number().int().min(0),
-    explanation: z.string(),
-  }).optional(),
+  elements: z.array(AnimationElementSchema).min(2).max(24),
+  steps: z.array(AnimationStepSchema).min(3).max(5),
+  finalQuiz: FinalQuizSchema.optional(),
+}).superRefine((data, context) => {
+  const elementIds = new Set<string>();
+  const stepIds = new Set(data.steps.map((step) => step.id));
+
+  data.elements.forEach((element, index) => {
+    if (elementIds.has(element.id)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['elements', index, 'id'], message: 'Identifiant d’élément dupliqué.' });
+    }
+    elementIds.add(element.id);
+    const horizontalExtent = element.type === 'circle' || element.type === 'particle'
+      ? element.radius ?? (element.type === 'particle' ? 5 : 30)
+      : element.type === 'ellipse'
+        ? element.rx ?? 0
+        : element.type === 'rect'
+          ? (element.width ?? 80) / 2
+          : 0;
+    const verticalExtent = element.type === 'circle' || element.type === 'particle'
+      ? element.radius ?? (element.type === 'particle' ? 5 : 30)
+      : element.type === 'ellipse'
+        ? element.ry ?? 0
+        : element.type === 'rect'
+          ? (element.height ?? 40) / 2
+          : 0;
+    if (
+      element.x - horizontalExtent < 0 ||
+      element.x + horizontalExtent > 800 ||
+      element.y - verticalExtent < 0 ||
+      element.y + verticalExtent > 380
+    ) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['elements', index], message: 'Élément en dehors du canevas.' });
+    }
+    if (element.type === 'line' && (
+      element.x2 === undefined ||
+      element.y2 === undefined ||
+      (element.x === element.x2 && element.y === element.y2)
+    )) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['elements', index], message: 'Ligne invalide ou de longueur nulle.' });
+    }
+    if (element.type === 'arrow' && (element.connectTo?.length ?? 0) === 0) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['elements', index, 'connectTo'], message: 'Une flèche doit cibler un élément.' });
+    }
+    if (element.type !== 'arrow' && element.connectTo?.length) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['elements', index, 'connectTo'], message: 'Seules les flèches peuvent définir connectTo.' });
+    }
+  });
+
+  data.steps.forEach((step, index) => {
+    if (data.steps.findIndex((candidate) => candidate.id === step.id) !== index) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['steps', index, 'id'], message: 'Identifiant d’étape dupliqué.' });
+    }
+    for (const id of step.highlights ?? []) {
+      if (!elementIds.has(id)) {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ['steps', index, 'highlights'], message: `Élément mis en évidence introuvable : ${id}.` });
+      }
+    }
+  });
+
+  data.elements.forEach((element, index) => {
+    for (const id of element.connectTo ?? []) {
+      if (!elementIds.has(id) || id === element.id) {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ['elements', index, 'connectTo'], message: `Connexion invalide : ${id}.` });
+      } else {
+        const target = data.elements.find((candidate) => candidate.id === id);
+        if (target && target.x === element.x && target.y === element.y) {
+          context.addIssue({ code: z.ZodIssueCode.custom, path: ['elements', index, 'connectTo'], message: 'Une flèche ne peut pas cibler son point de départ.' });
+        }
+      }
+    }
+    for (const id of element.visibleInSteps ?? []) {
+      if (!stepIds.has(id)) {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ['elements', index, 'visibleInSteps'], message: `Étape de visibilité introuvable : ${id}.` });
+      }
+    }
+  });
+
+  const challengedSteps = data.steps.filter((step) => step.challenge).length;
+  if (challengedSteps < 2) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['steps'], message: 'Au moins deux étapes doivent proposer un défi.' });
+  }
 });
 
 const DeepSeekLessonSchema = z.object({
-  title: z.string().min(2),
+  title: z.string().min(2).optional(),
   svg: z.string().optional().default(''),
-  animation_data: AnimationDataSchema.optional(),
+  animation_data: z.unknown().optional(),
   explanation: z.string().min(10),
   fun_fact: z.string().min(5),
   web_photo: WebPhotoSchema,
@@ -119,27 +243,23 @@ ADAPTATION ET PERSONNALISATION AU PROFIL DE L'APPRENANT (RÈGLE ABSOLUE ET CRUCI
 - L'explication ("explanation") et les sections ("sections") DOIVENT expressément mentionner et utiliser ces centres d'intérêt pour captiver l'apprenant.
 
 MINI-JEU INTERACTIF "animation_data" (OBLIGATOIRE - LE PLUS IMPORTANT) :
-Tu DOIS générer un objet "animation_data" qui sera rendu comme un mini-jeu éducatif interactif étape par étape.
-Il remplace le SVG statique. C'est l'élément clé de la leçon : chaque étape révèle une partie du concept avec un micro-défi.
+Tu DOIS générer un objet "animation_data" utilisé par le rendu interactif. Privilégie un schéma clair et fidèle au concept plutôt qu'un décor chargé.
 
-Règles de "animation_data" :
-- "title" : titre court du mini-jeu
-- "theme" : un parmi "space", "biology", "chemistry", "physics", "tech", "default"
-- "elements" : tableau d'éléments visuels, chacun avec :
-  * "id" (string unique), "type" ("circle"|"rect"|"arrow"|"label"|"particle")
-  * "x", "y" (nombres, grille 800x380, centre=400,190)
-  * "radius" (pour circles, 20-60), "width"/"height" (pour rects)
-  * "color" (hex CSS, ex "#60a5fa"), "glowColor" (hex CSS)
-  * "label" (texte court, ex "H2O", "ATP"), optionnel
-  * "spin":true (rotation), "pulse":true (palpitation), "float":true (levitation)
-  * "connectTo":["id-cible"] (trace une fleche), "visibleInSteps":["step-id"] (visible seulement a ces etapes)
-- "steps" : 4-6 etapes pedagogiques, chacune avec :
-  * "id" (string), "label" (titre court), "description" (2-3 phrases adaptees aux interets de l'apprenant)
-  * "highlights":["id-element"] (elements mis en evidence avec anneau pulsant)
-  * "challenge" (OBLIGATOIRE pour 2+ etapes) :
-      - Soit un Quiz : {"type":"quiz", "question":string, "options":["A","B","C"], "correct":number}
-      - Soit un Glisser-Déposer : {"type":"drag-drop", "instruction":"Glisse les éléments...", "draggables":["Eau", "Soleil"], "dropZones":[{"id":"z1", "label":"Racines", "expectedDraggable":"Eau"}]}
-- "finalQuiz" : {"question":string, "options":["A","B","C","D"], "correct":number, "explanation":string}
+Direction visuelle et composition :
+- Utilise 6 à 14 éléments au maximum, avec une composition centrée, équilibrée et des marges suffisantes dans le canevas 800x380.
+- Représente le sujet avec des objets reconnaissables et des relations compréhensibles; évite les cercles décoratifs sans rôle pédagogique.
+- Limite chaque label à 32 caractères et chaque étape à une idée principale. Les descriptions sont courtes, exactes et compréhensibles par l'âge indiqué.
+- Choisis une palette contrastée cohérente avec le thème. Utilise les effets pulse/float/spin avec parcimonie, seulement quand ils expliquent un mouvement ou une propriété.
+- Utilise uniquement ces formes : "circle", "ellipse", "rect", "line", "path", "arrow", "label", "particle".
+- Chaque élément a un "id" unique, des coordonnées x/y dans le canevas (800x380), et des couleurs hex (#RRGGBB). Garde les formes visibles dans les limites du canevas.
+- "ellipse" requiert rx/ry; "line" requiert x2/y2; "path" requiert une chaîne SVG d courte, avec uniquement des commandes de tracé et des nombres; "arrow" requiert connectTo avec l'id d'un autre élément.
+- "connectTo" ne s'utilise que sur "arrow". Les ids de "highlights" et "visibleInSteps" doivent exister.
+- Crée 3 à 5 étapes progressives; au moins deux étapes ont un défi quiz ou glisser-déposer. Les réponses correctes doivent pointer vers une option existante.
+- Le mini-jeu doit fonctionner sans JavaScript fourni par le modèle, script, GSAP, ressource ou image externe.
+
+SVG DE SECOURS :
+- Génère également un SVG autonome, simple et lisible dans le champ "svg" (viewBox="0 0 800 350"), au cas où le mini-jeu structuré ne peut pas être affiché.
+- Utilise des formes SVG natives, des labels courts et des couleurs contrastées. N'inclus aucun script, gestionnaire d'événement, GSAP, image ou ressource externe.
 
 REGLES COMPLEMENTAIRES :
 1. PHOTO DU WEB "web_photo" (OBLIGATOIRE) : { "url": "https://images.unsplash.com/photo-...", "caption": "..." }
@@ -164,19 +284,39 @@ Structure JSON attendue :
     "title": "Nom du mini-jeu",
     "theme": "biology",
     "elements": [
-      {"id": "noyau", "type": "circle", "x": 400, "y": 190, "radius": 50, "color": "#f59e0b", "glowColor": "#fbbf24", "label": "Noyau", "pulse": true},
-      {"id": "electron1", "type": "circle", "x": 550, "y": 120, "radius": 18, "color": "#60a5fa", "glowColor": "#3b82f6", "label": "e-", "float": true}
+      {"id": "soleil", "type": "circle", "x": 160, "y": 150, "radius": 42, "color": "#f59e0b", "label": "Lumière", "pulse": true},
+      {"id": "feuille", "type": "ellipse", "x": 430, "y": 190, "rx": 80, "ry": 42, "color": "#34d399", "label": "Feuille"},
+      {"id": "energie", "type": "arrow", "x": 220, "y": 150, "connectTo": ["feuille"], "color": "#fbbf24"}
     ],
     "steps": [
       {
         "id": "step-1",
-        "label": "Etape 1 : Titre",
-        "description": "Explication pedagogique en 2-3 phrases adaptee aux centres d'interet...",
-        "highlights": ["noyau"],
+        "label": "La lumière arrive",
+        "description": "La feuille reçoit l'énergie lumineuse, indispensable à la photosynthèse.",
+        "highlights": ["soleil", "feuille"],
         "challenge": {
-          "question": "Question rapide ?",
-          "options": ["Reponse A", "Reponse B", "Reponse C"],
+          "type": "quiz",
+          "question": "De quoi la feuille reçoit-elle l'énergie ?",
+          "options": ["Du sol", "De la lumière"],
           "correct": 1
+        }
+      },
+      {
+        "id": "step-2",
+        "label": "L'énergie est transférée",
+        "description": "La feuille utilise cette énergie pour transformer l'eau et le dioxyde de carbone.",
+        "highlights": ["energie", "feuille"]
+      },
+      {
+        "id": "step-3",
+        "label": "La plante fabrique du sucre",
+        "description": "Cette transformation produit du glucose et libère de l'oxygène.",
+        "highlights": ["feuille"],
+        "challenge": {
+          "type": "quiz",
+          "question": "Quel gaz la plante libère-t-elle ?",
+          "options": ["Oxygène", "Azote"],
+          "correct": 0
         }
       }
     ],
@@ -303,6 +443,54 @@ function sanitizeInput(text: string): string {
     .slice(0, 300);
 }
 
+function escapeXml(text: string): string {
+  return text.replace(/[<>&"']/g, (character) => {
+    const entities: Record<string, string> = {
+      '<': '&lt;',
+      '>': '&gt;',
+      '&': '&amp;',
+      '"': '&quot;',
+      "'": '&apos;',
+    };
+    return entities[character];
+  });
+}
+
+function isSafeSvg(svg: string): boolean {
+  const trimmed = svg.trim().replace(/^```(?:svg|xml)?\s*/i, '').replace(/```\s*$/i, '');
+  return (
+    /^<svg(?:\s|>)[\s\S]*<\/svg>$/i.test(trimmed) &&
+    !/<script\b|<foreignObject\b|<iframe\b|<object\b|<embed\b|<image\b|<!DOCTYPE|<!ENTITY/i.test(trimmed) &&
+    !/\son[a-z]+\s*=/i.test(trimmed) &&
+    !/\b(?:javascript|data):/i.test(trimmed) &&
+    !/\b(?:href|xlink:href)\s*=\s*["']\s*(?!#)[^"']+/i.test(trimmed) &&
+    !/\burl\(\s*(?!#)[^)]+\)/i.test(trimmed)
+  );
+}
+
+function createFallbackSvg(title: string): string {
+  const safeTitle = escapeXml(title.slice(0, 60));
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" role="img" aria-label="${safeTitle}">
+  <defs>
+    <linearGradient id="fallback-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#172554"/>
+    </linearGradient>
+    <linearGradient id="fallback-line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="350" rx="20" fill="url(#fallback-bg)"/>
+  <path d="M170 180H630" stroke="url(#fallback-line)" stroke-width="4" stroke-dasharray="10 10"/>
+  <circle cx="170" cy="180" r="44" fill="#1e3a8a" stroke="#38bdf8" stroke-width="3"/>
+  <circle cx="400" cy="180" r="58" fill="#312e81" stroke="#818cf8" stroke-width="3"/>
+  <circle cx="630" cy="180" r="44" fill="#4c1d95" stroke="#c084fc" stroke-width="3"/>
+  <text x="400" y="65" text-anchor="middle" fill="#f8fafc" font-family="sans-serif" font-size="24" font-weight="700">${safeTitle}</text>
+  <text x="400" y="285" text-anchor="middle" fill="#cbd5e1" font-family="sans-serif" font-size="16">Explore les étapes pour comprendre le concept</text>
+</svg>`;
+}
+
 // ── Génération d'une leçon initiale ─────────────────────────────────────────
 export async function generateLessonContent(params: GenerateLessonParams): Promise<{
   content: LessonContent;
@@ -345,7 +533,12 @@ export async function generateLessonContent(params: GenerateLessonParams): Promi
       const parsed = validated.data;
 
       const title = parsed.title || params.topic;
-      const svg = parsed.svg || '';
+      const svg = parsed.svg && isSafeSvg(parsed.svg)
+        ? parsed.svg.trim().replace(/^```(?:svg|xml)?\s*/i, '').replace(/```\s*$/i, '')
+        : createFallbackSvg(parsed.title || params.topic);
+      if (parsed.svg && !isSafeSvg(parsed.svg)) {
+        console.warn('[DeepSeek] SVG de secours invalide ou non autorisé; utilisation du schéma de base.');
+      }
       const explanation = parsed.explanation || '';
       const fun_fact = parsed.fun_fact || '';
 
@@ -362,7 +555,14 @@ export async function generateLessonContent(params: GenerateLessonParams): Promi
       const webPhotoResult = await fetchWebPhotosForTopic(title, params.subject);
 
       // Extract animation_data for the ConceptAnimator mini-game
-      const animation_data = parsed.animation_data;
+      const animationResult = AnimationDataSchema.safeParse(parsed.animation_data);
+      const animation_data = animationResult.success ? animationResult.data : undefined;
+      if (parsed.animation_data != null && !animationResult.success) {
+        console.warn(
+          '[DeepSeek] animation_data invalide; repli sur le SVG de secours:',
+          animationResult.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ')
+        );
+      }
 
       // Type conversion for sections to fix TS error (undefined -> null)
       const formattedSections = sections?.map(section => ({
@@ -448,8 +648,10 @@ RÈGLES STRICTES DE CONTINUATION D'APPRENTISSAGE :
 3. PERSONNALISATION SELON CENTRES D'INTÉRÊT :
    - Centres d'intérêt de l'apprenant : ${safeInterests.length > 0 ? safeInterests.join(', ') : 'Général'} (Âge: ${params.age || 14} ans).
    - Utilise ces passions pour faire des métaphores et des exemples stimulants dans l'explication et les sections du chapitre ${nextChapter}.
-4. DESSINS SVG ANIMÉS ULTRA HIGH-END & PHOTO DU WEB DÉDIÉE "web_photo" (OBLIGATOIRE ET CRUCIAL) :
-   - Génère impérativement une illustration SVG complète et animée pour l'en-tête ("svg") illustrant le concept de ce chapitre ${nextChapter} (viewBox="0 0 800 350", dégradés néon HSL, filtres glow, animations CSS/GSAP).
+4. ILLUSTRATION SVG ET PHOTO DU WEB "web_photo" :
+   - Génère un SVG autonome pour le champ "svg", avec viewBox="0 0 800 350", 6 à 14 formes utiles au concept, des labels courts et une composition lisible.
+   - Utilise des formes SVG natives et, si utile, de petites animations CSS. N'inclus ni script, GSAP, gestionnaire d'événement, ressource ou image externe dans ce SVG.
+   - Le sujet doit rester identifiable, le contraste suffisant et les formes dans les limites du canevas.
    - Fournis un objet "web_photo": { "url": "https://images.unsplash.com/photo-...", "caption": "Légende explicative de cette illustration..." } pour la carte dédiée placée sous "Le Savais-tu ?".
    - Pour CHAQUE section dans le tableau "sections", tu DOIS OBLIGATOIREMENT créer une démo/simulation interactive ("visualization") avec un code SVG+JS/GSAP autonome ("type": "svg", viewBox="0 0 800 450") permettant à l'utilisateur d'interagir (cliquer, bouger, slider, étapes). NE METS JAMAIS "visualization": null !
 5. STATUT DE COMPLÉTION :
@@ -465,7 +667,7 @@ Réponds STRICTEMENT sous la forme d'un objet JSON valide avec cette structure :
     "url": "https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=800&q=80",
     "caption": "Photo d'illustration du chapitre ${nextChapter}..."
   },
-  "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 800 350\\">...</svg>",
+  "svg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 800 350\\"><circle cx=\\"400\\" cy=\\"175\\" r=\\"60\\" fill=\\"#38bdf8\\"/></svg>",
   "sections": [
     {
       "heading": "Titre de la sous-partie",
@@ -500,7 +702,12 @@ Tu réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après, sa
       const title = parsed.title || `Chapitre ${nextChapter} : ${params.topic}`;
       const previous_summary = parsed.previous_summary || `Dans les étapes précédentes, nous avons exploré les fondamentaux de ${params.topic}.`;
       const explanation = parsed.explanation || parsed.explication || '';
-      const svg = parsed.svg || '';
+      const svg = typeof parsed.svg === 'string' && isSafeSvg(parsed.svg)
+        ? parsed.svg.trim().replace(/^```(?:svg|xml)?\s*/i, '').replace(/```\s*$/i, '')
+        : createFallbackSvg(title);
+      if (parsed.svg && (typeof parsed.svg !== 'string' || !isSafeSvg(parsed.svg))) {
+        console.warn('[DeepSeek] SVG de continuation invalide ou non autorisé; utilisation du schéma de base.');
+      }
       const fun_fact = parsed.fun_fact || parsed.funFact || '';
 
       const quiz = (parsed.quiz || []).map((q: any) => {

@@ -60,14 +60,22 @@ export interface LessonWebPhoto {
 
 export interface AnimationElement {
   id: string;
-  type: 'circle' | 'rect' | 'arrow' | 'label' | 'particle';
+  type: 'circle' | 'rect' | 'arrow' | 'label' | 'particle' | 'ellipse' | 'line' | 'path';
   x: number;
   y: number;
   width?: number;
   height?: number;
   radius?: number;
+  rx?: number;
+  ry?: number;
+  x2?: number;
+  y2?: number;
+  d?: string;
   color?: string;
+  fill?: string;
   glowColor?: string;
+  strokeWidth?: number;
+  fontSize?: number;
   label?: string;
   spin?: boolean;
   pulse?: boolean;

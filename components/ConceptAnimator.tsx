@@ -31,14 +31,22 @@ export interface AnimationStep {
 
 export interface AnimationElement {
   id: string;
-  type: 'circle' | 'rect' | 'arrow' | 'label' | 'group' | 'particle';
+  type: 'circle' | 'rect' | 'arrow' | 'label' | 'particle' | 'ellipse' | 'line' | 'path';
   x: number;
   y: number;
   width?: number;
   height?: number;
   radius?: number;
+  rx?: number;
+  ry?: number;
+  x2?: number;
+  y2?: number;
+  d?: string;
   color?: string;
+  fill?: string;
   glowColor?: string;
+  strokeWidth?: number;
+  fontSize?: number;
   label?: string;
   /** Element rotates when animated */
   spin?: boolean;
@@ -144,6 +152,64 @@ function renderElement(
         />
       );
 
+    case 'ellipse':
+      return (
+        <g
+          key={el.id}
+          ref={(n) => setRef(el.id, n)}
+          data-eltype="ellipse"
+          data-x={el.x}
+          data-y={el.y}
+          data-float={el.float}
+          data-pulse={el.pulse}
+          data-spin={el.spin}
+          style={{ transformOrigin: `${el.x}px ${el.y}px`, filter: `drop-shadow(0 0 8px ${glow})` }}
+        >
+          <ellipse cx={el.x} cy={el.y} rx={el.rx || 40} ry={el.ry || 24} fill={color} opacity={0.9} />
+          {el.label && (
+            <text x={el.x} y={el.y + 5} textAnchor="middle" fill="white" fontSize={el.fontSize || 12} fontWeight="bold">
+              {el.label}
+            </text>
+          )}
+        </g>
+      );
+
+    case 'line':
+      if (el.x2 === undefined || el.y2 === undefined) return null;
+      return (
+        <g
+          key={el.id}
+          ref={(n) => setRef(el.id, n)}
+          data-eltype="line"
+          data-x={el.x}
+          data-y={el.y}
+          data-float={el.float}
+          data-pulse={el.pulse}
+          data-spin={el.spin}
+          style={{ transformOrigin: `${el.x}px ${el.y}px`, filter: `drop-shadow(0 0 4px ${glow})` }}
+        >
+          <line x1={el.x} y1={el.y} x2={el.x2} y2={el.y2} stroke={color} strokeWidth={el.strokeWidth || 3} />
+        </g>
+      );
+
+    case 'path':
+      if (!el.d) return null;
+      return (
+        <g
+          key={el.id}
+          ref={(n) => setRef(el.id, n)}
+          data-eltype="path"
+          data-x={el.x}
+          data-y={el.y}
+          data-float={el.float}
+          data-pulse={el.pulse}
+          data-spin={el.spin}
+          style={{ transformOrigin: `${el.x}px ${el.y}px`, filter: `drop-shadow(0 0 4px ${glow})` }}
+        >
+          <path d={el.d} fill={el.fill || 'none'} stroke={color} strokeWidth={el.strokeWidth || 3} strokeLinejoin="round" strokeLinecap="round" />
+        </g>
+      );
+
     case 'arrow':
       if (!el.connectTo?.[0]) return null;
       const target = allElements.find(e => e.id === el.connectTo![0]);
@@ -180,7 +246,7 @@ function renderElement(
           y={el.y}
           textAnchor="middle"
           fill={color}
-          fontSize={el.width || 14}
+          fontSize={el.fontSize || el.width || 14}
           fontWeight="bold"
           style={{ filter: `drop-shadow(0 0 4px ${glow})`, transformOrigin: `${el.x}px ${el.y}px` }}
         >
@@ -253,7 +319,13 @@ export default function ConceptAnimator({ data, className = '' }: Props) {
           node.setAttribute('cx', String(cx));
           node.setAttribute('cy', String(y + floatY));
           node.setAttribute('opacity', String(0.7 + Math.sin(f * 0.08) * 0.3));
-        } else if (type === 'circle' || type === 'label') {
+        } else if (
+          type === 'circle' ||
+          type === 'label' ||
+          type === 'ellipse' ||
+          type === 'line' ||
+          type === 'path'
+        ) {
           node.setAttribute('transform', `translate(0, ${floatY}) rotate(${rotate}) scale(${scale})`);
         } else if (type === 'rect') {
           node.setAttribute('transform', `translate(${x}, ${y + floatY}) rotate(${rotate}) scale(${scale})`);
@@ -345,9 +417,12 @@ export default function ConceptAnimator({ data, className = '' }: Props) {
         style={{ background: 'rgba(0,0,0,0.4)' }}>
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4" style={{ color: theme.accent }} />
-          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: theme.accent }}>
-            Mini-Jeu Interactif
-          </span>
+          <div className="flex min-w-0 flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: theme.accent }}>
+              Mini-Jeu Interactif
+            </span>
+            <span className="truncate text-xs font-semibold text-white">{data.title}</span>
+          </div>
         </div>
         <div className="flex items-center gap-1 text-xs" style={{ color: theme.text + '99' }}>
           {stepIdx >= 0 ? `Étape ${stepIdx + 1} / ${steps.length}` : 'Vue d\'ensemble'}
@@ -438,20 +513,14 @@ export default function ConceptAnimator({ data, className = '' }: Props) {
             </g>
           )}
 
-          {/* Overview title */}
-          {!activeStep && (
-            <g>
-              <text x="400" y="200" textAnchor="middle" fill={theme.accent} fontSize="22" fontWeight="bold"
-                style={{ filter: `drop-shadow(0 0 12px ${theme.glow})` }}>
-                {data.title}
-              </text>
-              <text x="400" y="228" textAnchor="middle" fill={theme.text + '88'} fontSize="13">
-                Appuie sur ▶ pour découvrir étape par étape
-              </text>
-            </g>
-          )}
         </svg>
       </div>
+
+      {!activeStep && (
+        <p className="px-5 py-3 text-xs" style={{ background: 'rgba(0,0,0,0.25)', color: theme.text + 'aa' }}>
+          Appuie sur ▶ pour découvrir le schéma étape par étape.
+        </p>
+      )}
 
       {/* ── Step description panel ── */}
       {activeStep && (
