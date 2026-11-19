@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import {
-  Sparkles, Flame, Award, User, Menu, X, PlusCircle, History, LayoutDashboard, LogIn, LogOut, Sun, Moon, Settings
+  Sparkles, Flame, Award, User, Menu, X, PlusCircle, History, LayoutDashboard, LogIn, LogOut, Sun, Moon, Settings, ShieldCheck
 } from 'lucide-react';
 import { getDemoStats, getDemoProfile } from '@/lib/demo-engine';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +18,7 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { user, profile, stats, openLogin, signOut, loading } = useAuth();
   const { t } = useLanguage();
 
@@ -28,6 +29,26 @@ export default function Navbar() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+
+    let active = true;
+    fetch('/api/admin/access')
+      .then((response) => {
+        if (active) setIsAdmin(response.ok);
+      })
+      .catch(() => {
+        if (active) setIsAdmin(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!user) {
@@ -54,6 +75,7 @@ export default function Navbar() {
     { href: '/badges', label: t('badges_xp'), icon: Award },
     { href: '/history', label: t('history'), icon: History },
     { href: '/profile', label: t('profile'), icon: User },
+    ...(isAdmin ? [{ href: '/admin', label: 'Admin', icon: ShieldCheck }] : []),
   ];
 
   return (

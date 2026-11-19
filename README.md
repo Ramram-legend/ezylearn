@@ -72,6 +72,7 @@ cp .env.example .env.local
 Renseigner dans `.env.local` :
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API)
 - `ANTHROPIC_API_KEY` (console Anthropic)
+- `ADMIN_EMAILS` (adresses autorisées à gérer les forfaits, séparées par des virgules — par exemple `edukits5@gmail.com`)
 
 ### 3.4 Lancer en local
 
@@ -87,6 +88,8 @@ npm run dev           # http://localhost:3000
 vercel deploy
 ```
 Puis renseigner les memes variables d'environnement dans Vercel → Project Settings → Environment Variables.
+
+L’espace d’administration `/admin` permet de rechercher un utilisateur et de lui attribuer un forfait. L’accès est limité côté serveur aux adresses déclarées dans `ADMIN_EMAILS`; la clé `SUPABASE_SERVICE_ROLE_KEY` est utilisée uniquement par les routes serveur.
 
 ---
 
